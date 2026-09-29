@@ -37,20 +37,20 @@ export class BagModal {
     this.container.innerHTML = `
       <div class="modal-content">
         <div class="modal-header">
-          <div class="modal-title">🎒 Item Bag (Mochila)</div>
+          <div class="modal-title">🎒 Mochila de Itens</div>
           <button class="modal-close-btn" id="bag-close">✕</button>
         </div>
         <div class="modal-body">
           <div class="modal-tabs">
-            <button class="modal-tab-btn ${this.currentCategory === 'all' ? 'active' : ''}" data-cat="all">All</button>
-            <button class="modal-tab-btn ${this.currentCategory === 'ball' ? 'active' : ''}" data-cat="ball">Poké Balls</button>
-            <button class="modal-tab-btn ${this.currentCategory === 'healing' ? 'active' : ''}" data-cat="healing">Potions & Healing</button>
-            <button class="modal-tab-btn ${this.currentCategory === 'stone' ? 'active' : ''}" data-cat="stone">Evolution Stones</button>
+            <button class="modal-tab-btn ${this.currentCategory === 'all' ? 'active' : ''}" data-cat="all">Todos</button>
+            <button class="modal-tab-btn ${this.currentCategory === 'ball' ? 'active' : ''}" data-cat="ball">Pokébolas</button>
+            <button class="modal-tab-btn ${this.currentCategory === 'healing' ? 'active' : ''}" data-cat="healing">Poções e Cura</button>
+            <button class="modal-tab-btn ${this.currentCategory === 'stone' ? 'active' : ''}" data-cat="stone">Pedras de Evolução</button>
           </div>
 
           ${filteredItems.length === 0 ? `
             <div style="text-align: center; color: #9ca3af; padding: 40px 0;">
-              No items in this category. Visit the <strong>Shop</strong> to buy items!
+              Nenhum item nesta categoria. Visite a <strong>Loja</strong> ou vença hunts para conseguir suprimentos!
             </div>
           ` : `
             <div class="cards-grid">
@@ -90,20 +90,20 @@ export class BagModal {
     let actionBtnHtml = '';
     if (item.category === 'healing') {
       actionBtnHtml = `
-        <button class="btn-small green" data-action="use-potion" data-item-id="${item.id}">Use on Active</button>
+        <button class="btn-small green" data-action="use-potion" data-item-id="${item.id}">Curar Ativo</button>
         <button class="btn-small ${isPreferredPotion ? 'gold' : ''}" data-action="set-potion" data-item-id="${item.id}">
-          ${isPreferredPotion ? '★ Auto-Heal' : 'Set Auto'}
+          ${isPreferredPotion ? '★ Auto-Cura' : 'Definir Auto'}
         </button>
       `;
     } else if (item.category === 'ball') {
       actionBtnHtml = `
         <button class="btn-small ${isPreferredBall ? 'gold' : ''}" data-action="set-ball" data-item-id="${item.id}">
-          ${isPreferredBall ? '★ Active Ball' : 'Set as Catch Ball'}
+          ${isPreferredBall ? '★ Bola de Captura' : 'Usar na Captura'}
         </button>
       `;
     } else if (item.category === 'stone') {
       actionBtnHtml = `
-        <button class="btn-small gold" data-action="use-stone" data-item-id="${item.id}">Use Stone</button>
+        <button class="btn-small gold" data-action="use-stone" data-item-id="${item.id}">Usar Pedra</button>
       `;
     }
 
@@ -130,7 +130,7 @@ export class BagModal {
     if (action === 'use-potion') {
       if (!active) return;
       if (active.currentHp >= active.maxHp) {
-        alert(`${active.displayName} already has full HP!`);
+        alert(`${active.displayName} já está com o HP cheio!`);
         return;
       }
       gameState.useHealingItem(itemId, active);
@@ -149,18 +149,18 @@ export class BagModal {
       );
 
       if (eligible.length === 0) {
-        alert(`None of your current Pokémon can evolve with the ${GAME_ITEMS[itemId]?.name}!`);
+        alert(`Nenhum dos seus Pokémons atuais pode evoluir com a ${GAME_ITEMS[itemId]?.name}!`);
         return;
       }
 
       // Prompt or select pokemon to evolve
-      const names = eligible.map((p, idx) => `${idx + 1}: ${p.displayName} (Lv.${p.level})`).join('\n');
-      const selection = prompt(`Which Pokémon do you want to evolve with ${GAME_ITEMS[itemId]?.name}?\n${names}\n\nEnter number (1-${eligible.length}):`);
+      const names = eligible.map((p, idx) => `${idx + 1}: ${p.displayName} (Nv.${p.level})`).join('\n');
+      const selection = prompt(`Qual Pokémon você deseja evoluir com ${GAME_ITEMS[itemId]?.name}?\n${names}\n\nDigite o número (1-${eligible.length}):`);
       if (selection) {
         const index = parseInt(selection, 10) - 1;
         if (eligible[index]) {
           await gameState.useEvolutionStone(itemId, eligible[index]);
-          alert(`${eligible[index].displayName} evolved successfully!`);
+          alert(`${eligible[index].displayName} evoluiu com sucesso!`);
           this.render();
         }
       }

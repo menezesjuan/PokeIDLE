@@ -63,14 +63,14 @@ export class LogModal {
       <div class="modal-content" style="max-width: 680px; max-height: 85vh; display: flex; flex-direction: column;">
         <div class="modal-header">
           <div>
-            <div class="modal-title">📜 Diário de Aventuras & Log de Atividades</div>
+            <div class="modal-title">📜 Diário de Batalha</div>
             <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">
-              Histórico em tempo real de batalhas, capturas e o que aconteceu enquanto você esteve inativo.
+              Histórico detalhado de combates, capturas, drops e eventos enquanto você esteve inativo.
             </div>
           </div>
           <div style="display: flex; gap: 8px; align-items: center;">
-            <button class="btn-small red" id="btn-clear-logs" style="font-size: 11px; padding: 4px 8px;">
-              Limpar
+            <button class="btn-small red" id="btn-clear-logs" style="font-size: 11px; padding: 4px 10px;">
+              Limpar Diário
             </button>
             <button class="modal-close-btn" id="log-close">✕</button>
           </div>

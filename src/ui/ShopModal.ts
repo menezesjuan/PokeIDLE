@@ -32,16 +32,16 @@ export class ShopModal {
       <div class="modal-content">
         <div class="modal-header">
           <div class="modal-title">
-            🛒 Poké Mart & Pokémon Exchange
+            🛒 Poké Mart & Centro de Trocas
             <span class="money-badge" style="margin-left: 12px;">₽ ${gameState.money.toLocaleString()}</span>
           </div>
           <button class="modal-close-btn" id="shop-close">✕</button>
         </div>
         <div class="modal-body">
           <div class="modal-tabs">
-            <button class="modal-tab-btn ${this.currentTab === 'buy' ? 'active' : ''}" data-tab="buy">Buy Items</button>
-            <button class="modal-tab-btn ${this.currentTab === 'sell-items' ? 'active' : ''}" data-tab="sell-items">Sell Items</button>
-            <button class="modal-tab-btn ${this.currentTab === 'sell-pokemon' ? 'active' : ''}" data-tab="sell-pokemon">Sell Pokémon</button>
+            <button class="modal-tab-btn ${this.currentTab === 'buy' ? 'active' : ''}" data-tab="buy">Comprar Itens</button>
+            <button class="modal-tab-btn ${this.currentTab === 'sell-items' ? 'active' : ''}" data-tab="sell-items">Vender Itens</button>
+            <button class="modal-tab-btn ${this.currentTab === 'sell-pokemon' ? 'active' : ''}" data-tab="sell-pokemon">Vender Pokémon</button>
           </div>
 
           ${this.currentTab === 'buy' ? this.renderBuyTab() : ''}
@@ -115,10 +115,10 @@ export class ShopModal {
 
     return `
       <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-        <button class="btn-small ${this.buyFilter === 'all' ? 'gold' : ''} buy-filter-btn" data-filter="all">All</button>
-        <button class="btn-small ${this.buyFilter === 'ball' ? 'gold' : ''} buy-filter-btn" data-filter="ball">Poké Balls</button>
-        <button class="btn-small ${this.buyFilter === 'healing' ? 'gold' : ''} buy-filter-btn" data-filter="healing">Potions</button>
-        <button class="btn-small ${this.buyFilter === 'stone' ? 'gold' : ''} buy-filter-btn" data-filter="stone">Stones</button>
+        <button class="btn-small ${this.buyFilter === 'all' ? 'gold' : ''} buy-filter-btn" data-filter="all">Todos</button>
+        <button class="btn-small ${this.buyFilter === 'ball' ? 'gold' : ''} buy-filter-btn" data-filter="ball">Pokébolas</button>
+        <button class="btn-small ${this.buyFilter === 'healing' ? 'gold' : ''} buy-filter-btn" data-filter="healing">Poções</button>
+        <button class="btn-small ${this.buyFilter === 'stone' ? 'gold' : ''} buy-filter-btn" data-filter="stone">Pedras</button>
       </div>
       <div class="cards-grid">
         ${items.map(item => {
@@ -137,10 +137,10 @@ export class ShopModal {
               <div class="card-desc">${item.description}</div>
               <div class="card-actions">
                 <button class="btn-small green" data-buy-item="${item.id}" data-qty="1" ${!canAfford1 ? 'disabled' : ''}>
-                  Buy x1
+                  Comprar x1
                 </button>
                 <button class="btn-small green" data-buy-item="${item.id}" data-qty="10" ${!canAfford10 ? 'disabled' : ''}>
-                  Buy x10
+                  Comprar x10
                 </button>
               </div>
             </div>
@@ -157,7 +157,7 @@ export class ShopModal {
     if (itemsOwned.length === 0) {
       return `
         <div style="text-align: center; color: #9ca3af; padding: 40px 0;">
-          Your bag is empty! You don't have any items to sell.
+          Sua mochila está vazia! Você não possui itens para vender no momento.
         </div>
       `;
     }
@@ -176,15 +176,15 @@ export class ShopModal {
                 <img src="${item.spriteUrl}" alt="${item.name}" class="card-sprite" />
                 <div class="card-details">
                   <div class="card-name">${item.name}</div>
-                  <div class="card-count">Owned: x${count} | Sell: ₽ ${sellPrice.toLocaleString()}</div>
+                  <div class="card-count">Possui: x${count} | Venda: ₽ ${sellPrice.toLocaleString()}</div>
                 </div>
               </div>
               <div class="card-actions">
                 <button class="btn-small red" data-sell-item="${item.id}" data-qty="1">
-                  Sell x1 (+₽ ${sellPrice})
+                  Vender x1 (+₽ ${sellPrice})
                 </button>
                 <button class="btn-small red" data-sell-item="${item.id}" data-qty="${count}">
-                  Sell All (+₽ ${(sellPrice * count).toLocaleString()})
+                  Vender Tudo (+₽ ${(sellPrice * count).toLocaleString()})
                 </button>
               </div>
             </div>
@@ -201,22 +201,22 @@ export class ShopModal {
     return `
       <div style="margin-bottom: 14px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
         <div>
-          <strong style="color: #60a5fa;">Pokémon Breeder Exchange:</strong>
-          <span style="color: #9ca3af; font-size: 12px; margin-left: 6px;">Sell excess Pokémon for ₽ PokéDollars based on level!</span>
+          <strong style="color: #60a5fa;">Centro de Criadores Pokémon:</strong>
+          <span style="color: #9ca3af; font-size: 12px; margin-left: 6px;">Venda Pokémons excedentes por ₽ Pokédollars com base no nível!</span>
         </div>
         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;">
           <input type="checkbox" id="auto-release-duplicates" ${gameState.settings.autoReleaseDuplicates ? 'checked' : ''} />
-          Auto-Sell Duplicates
+          Auto-Vender Duplicatas
         </label>
       </div>
 
       <div style="font-size: 13px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px;">
-        📦 Storage Box (${boxPokemons.length} Pokémon)
+        📦 Box Pokémon (${boxPokemons.length} Pokémon)
       </div>
 
       ${boxPokemons.length === 0 ? `
         <div style="text-align: center; color: #9ca3af; padding: 20px 0;">
-          No Pokémon in your storage box. Captured Pokémon will appear here when your party of 6 is full!
+          Nenhum Pokémon na Box de reserva. Pokémons capturados aparecerão aqui quando sua equipe de 6 estiver cheia!
         </div>
       ` : `
         <div class="cards-grid" style="margin-bottom: 20px;">
@@ -235,7 +235,7 @@ export class ShopModal {
                 </div>
                 <div class="card-actions">
                   <button class="btn-small red" data-from-box="true" data-sell-poke-index="${idx}">
-                    Sell for ₽ ${sellValue.toLocaleString()}
+                    Vender por ₽ ${sellValue.toLocaleString()}
                   </button>
                 </div>
               </div>
@@ -245,7 +245,7 @@ export class ShopModal {
       `}
 
       <div style="font-size: 13px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px;">
-        👥 Active Party (Can sell if more than 1 Pokémon)
+        👥 Equipe Ativa (Permite venda se houver mais de 1 Pokémon)
       </div>
       <div class="cards-grid">
         ${partyPokemons.map((poke, idx) => {
@@ -265,7 +265,7 @@ export class ShopModal {
               </div>
               <div class="card-actions">
                 <button class="btn-small red" data-from-box="false" data-sell-poke-index="${idx}" ${isOnlyPokemon ? 'disabled' : ''}>
-                  ${isOnlyPokemon ? 'Active Starter' : `Sell for ₽ ${sellValue.toLocaleString()}`}
+                  ${isOnlyPokemon ? 'Inicial Ativo' : `Vender por ₽ ${sellValue.toLocaleString()}`}
                 </button>
               </div>
             </div>
@@ -283,7 +283,7 @@ export class ShopModal {
       gameState.addItem(itemId, qty);
       this.render();
     } else {
-      alert('Not enough PokéDollars!');
+      alert('Pokédollars insuficientes!');
     }
   }
 

@@ -246,7 +246,7 @@ class BattleEngine {
           if (gameState.useHealingItem(pId, player)) {
             this.emit({
               type: 'potion-used',
-              message: `${player.displayName} healed with ${GAME_ITEMS[pId]?.name}!`,
+              message: `${player.displayName} foi curado com ${GAME_ITEMS[pId]?.name}!`,
             });
             break;
           }
@@ -290,14 +290,14 @@ class BattleEngine {
             type: 'catch-success',
             ballId,
             wildPokemon: wild,
-            message: `Gotcha! ${wild.displayName} was caught!`,
+            message: `Boa! ${wild.displayName} foi capturado com sucesso!`,
           });
         } else {
           this.emit({
             type: 'catch-fail',
             ballId,
             wildPokemon: wild,
-            message: `Oh no! The wild ${wild.displayName} broke free!`,
+            message: `Que pena! O selvagem ${wild.displayName} escapou da Pokébola!`,
           });
         }
       }
@@ -307,7 +307,7 @@ class BattleEngine {
       this.emit({
         type: 'pokemon-faint',
         wildPokemon: wild,
-        message: `Wild ${wild.displayName} fainted!`,
+        message: `O selvagem ${wild.displayName} foi derrotado!`,
       });
     }
 
@@ -318,14 +318,14 @@ class BattleEngine {
     if (leveledUp) {
       this.emit({
         type: 'level-up',
-        message: `${player.displayName} grew to Level ${player.level}!`,
+        message: `${player.displayName} subiu para o Nível ${player.level}!`,
       });
     }
 
     if (evolved) {
       this.emit({
         type: 'evolution',
-        message: `What? ${player.displayName} evolved into ${player.displayName}!`,
+        message: `O quê?! ${player.displayName} evoluiu com sucesso!`,
       });
     }
 
@@ -380,7 +380,7 @@ class BattleEngine {
       gameState.setActivePokemon(nextIndex);
       this.emit({
         type: 'player-faint',
-        message: `Active fainted! Switched to ${gameState.activePokemon?.displayName}!`,
+        message: `O Pokémon ativo desmaiou! ${gameState.activePokemon?.displayName} entrou na batalha!`,
       });
       setTimeout(() => this.executeBumpTurn(), 800);
       return;

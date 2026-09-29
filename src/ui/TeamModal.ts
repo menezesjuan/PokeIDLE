@@ -31,16 +31,16 @@ export class TeamModal {
     this.container.innerHTML = `
       <div class="modal-content">
         <div class="modal-header">
-          <div class="modal-title">👥 Pokémon Team & Storage</div>
+          <div class="modal-title">👥 Equipe Pokémon & Box</div>
           <button class="modal-close-btn" id="team-close">✕</button>
         </div>
         <div class="modal-body">
           <div class="modal-tabs">
             <button class="modal-tab-btn ${this.currentTab === 'party' ? 'active' : ''}" data-tab="party">
-              Active Party (${gameState.party.length}/6)
+              Equipe Ativa (${gameState.party.length}/6)
             </button>
             <button class="modal-tab-btn ${this.currentTab === 'box' ? 'active' : ''}" data-tab="box">
-              Storage Box (${gameState.box.length})
+              Box de Reserva (${gameState.box.length})
             </button>
           </div>
 
@@ -92,7 +92,7 @@ export class TeamModal {
         if (pokemon) {
           const success = await gameState.useEvolutionStone(itemId, pokemon);
           if (success) {
-            alert(`Awesome! ${pokemon.displayName} evolved!`);
+            alert(`Incrível! ${pokemon.displayName} evoluiu!`);
             this.render();
           }
         }
@@ -106,7 +106,7 @@ export class TeamModal {
         if (gameState.revivePokemon(uid)) {
           this.render();
         } else {
-          alert('Not enough PokéDollars! Reviving requires ₽ 10.');
+          alert('Pokédollars insuficientes! Reviver requer ₽ 10.');
         }
       });
     });
@@ -116,7 +116,7 @@ export class TeamModal {
       if (res.success) {
         this.render();
       } else {
-        alert('Not enough PokéDollars to revive all fainted Pokémon!');
+        alert('Pokédollars insuficientes para reviver toda a equipe!');
       }
     });
 
@@ -137,11 +137,11 @@ export class TeamModal {
       ${faintedCount > 0 ? `
         <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
           <div>
-            <strong style="color: #f87171;">💀 ${faintedCount} Pokémon fainted in your team!</strong>
-            <div style="font-size: 11px; color: #fca5a5;">Revive individually for ₽ 10 each or revive all:</div>
+            <strong style="color: #f87171;">💀 ${faintedCount} Pokémon desmaiado(s) na equipe!</strong>
+            <div style="font-size: 11px; color: #fca5a5;">Reviva individualmente por ₽ 10 cada ou reviva todos:</div>
           </div>
           <button class="btn-small gold" id="btn-team-revive-all" ${gameState.money < totalCost ? 'disabled' : ''} style="padding: 6px 12px;">
-            ✨ Revive All (${faintedCount} for ₽ ${totalCost})
+            ✨ Reviver Todos (${faintedCount} por ₽ ${totalCost})
           </button>
         </div>
       ` : ''}
@@ -157,7 +157,7 @@ export class TeamModal {
     if (box.length === 0) {
       return `
         <div style="text-align: center; color: #9ca3af; padding: 40px 0;">
-          Your storage box is empty. Catch more Pokémon to see them here!
+          Sua Box de reserva está vazia. Capture mais Pokémon para vê-los aqui!
         </div>
       `;
     }
@@ -180,20 +180,20 @@ export class TeamModal {
           const minLvl = evo.minLevel || 25;
           const ready = p.level >= minLvl;
           return `<span style="color: ${ready ? '#4ade80' : '#94a3b8'};">
-            ${ready ? '★ Ready to evolve!' : `Evolves at Lv.${minLvl}`} into <strong>${evo.targetSpeciesName.toUpperCase()}</strong>
+            ${ready ? '★ Pronto para evoluir!' : `Evolui no Nv.${minLvl}`} para <strong>${evo.targetSpeciesName.toUpperCase()}</strong>
           </span>`;
         } else if (evo.triggerType === 'use-item' && evo.item) {
           const item = GAME_ITEMS[evo.item];
           const hasStone = gameState.getItemCount(evo.item) > 0;
           return `
             <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
-              <span style="color: #f59e0b;">Evolves with ${item?.name || evo.item} into <strong>${evo.targetSpeciesName.toUpperCase()}</strong></span>
+              <span style="color: #f59e0b;">Evolui com ${item?.name || evo.item} para <strong>${evo.targetSpeciesName.toUpperCase()}</strong></span>
               ${hasStone ? `
                 <button class="btn-small gold" data-use-stone="${evo.item}" data-poke-uid="${p.uid}" style="flex: 0 0 auto;">
-                  Use ${item?.name}
+                  Usar ${item?.name}
                 </button>
               ` : `
-                <span style="font-size: 10px; color: #ef4444;">(Need stone)</span>
+                <span style="font-size: 10px; color: #ef4444;">(Precisa da pedra)</span>
               `}
             </div>
           `;
@@ -220,8 +220,8 @@ export class TeamModal {
             <div style="display: flex; align-items: center; gap: 8px;">
               <span style="font-size: 14px; font-weight: 700;">${p.displayName}</span>
               <span style="font-size: 12px; color: #60a5fa; font-weight: 600;">Lv.${p.level}</span>
-              ${isLeader ? '<span style="background: #2563eb; color: white; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700;">IN BATTLE</span>' : ''}
-              ${isFainted ? '<span style="background: #ef4444; color: white; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700;">FAINTED</span>' : ''}
+              ${isLeader ? '<span style="background: #2563eb; color: white; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700;">LÍDER EM BATALHA</span>' : ''}
+              ${isFainted ? '<span style="background: #ef4444; color: white; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700;">DESMAIADO</span>' : ''}
             </div>
 
             <div class="poke-types">
@@ -231,9 +231,9 @@ export class TeamModal {
             <!-- Stats Bar -->
             <div style="display: flex; gap: 14px; font-size: 11px; color: #cbd5e1; margin-top: 4px;">
               <span style="${isFainted ? 'color: #ef4444; font-weight: 700;' : ''}">HP: <strong>${p.currentHp}/${p.maxHp}</strong></span>
-              <span>ATK: <strong>${p.attack}</strong></span>
+              <span>ATQ: <strong>${p.attack}</strong></span>
               <span>DEF: <strong>${p.defense}</strong></span>
-              <span>SPD: <strong>${p.speed}</strong></span>
+              <span>VEL: <strong>${p.speed}</strong></span>
             </div>
 
             <!-- EXP Bar -->
@@ -251,30 +251,30 @@ export class TeamModal {
           </div>
 
           <!-- Actions -->
-          <div style="display: flex; flex-direction: column; gap: 6px; min-width: 105px;">
+          <div style="display: flex; flex-direction: column; gap: 6px; min-width: 130px;">
             ${isFainted ? `
               <button class="btn-small gold" data-revive-poke="${p.uid}" ${gameState.money < 10 ? 'disabled' : ''}>
-                Revive (₽ 10)
+                Reviver (₽ 10)
               </button>
             ` : ''}
 
             ${!isBox && !isLeader && !isFainted ? `
-              <button class="btn-small green" data-set-active="${index}">Set as Active</button>
+              <button class="btn-small green" data-set-active="${index}">Definir como Líder</button>
             ` : ''}
 
             ${!isBox && gameState.box.length > 0 ? `
-              <button class="btn-small secondary" data-swap-box="${index}" title="Swap with a Pokémon from Box">
-                🔄 Swap with Box
+              <button class="btn-small secondary" data-swap-box="${index}" title="Trocar com um Pokémon da Box">
+                🔄 Trocar com a Box
               </button>
             ` : ''}
 
             ${!isBox && gameState.party.length > 1 ? `
-              <button class="btn-small secondary" data-move-box="${index}">To Box</button>
+              <button class="btn-small secondary" data-move-box="${index}">Remover da equipe</button>
             ` : ''}
 
             ${isBox ? `
               <button class="btn-small green" data-move-party="${index}" ${gameState.party.length >= 6 ? 'disabled' : ''}>
-                Move to Party
+                Mover para Equipe
               </button>
             ` : ''}
           </div>
@@ -286,15 +286,15 @@ export class TeamModal {
   private promptSwapWithBox(partyIdx: number): void {
     const box = gameState.box;
     if (box.length === 0) {
-      alert('Your storage box is empty.');
+      alert('Sua Box de reserva está vazia.');
       return;
     }
 
     const list = box
-      .map((p, idx) => `${idx + 1}: ${p.displayName} (Lv.${p.level} - HP ${p.currentHp}/${p.maxHp} ${p.currentHp <= 0 ? '💀' : '💚'})`)
+      .map((p, idx) => `${idx + 1}: ${p.displayName} (Nv.${p.level} - HP ${p.currentHp}/${p.maxHp} ${p.currentHp <= 0 ? '💀' : '💚'})`)
       .join('\n');
 
-    const choice = prompt(`Select a Pokémon from Box to swap into party:\n${list}\n\nEnter number (1-${box.length}):`);
+    const choice = prompt(`Selecione um Pokémon da Box para colocar na equipe:\n${list}\n\nDigite o número (1-${box.length}):`);
     if (choice) {
       const selectedIdx = parseInt(choice, 10) - 1;
       if (box[selectedIdx]) {

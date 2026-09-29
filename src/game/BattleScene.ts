@@ -181,14 +181,14 @@ export class BattleScene extends Phaser.Scene {
     const route = GAME_ROUTES.find(r => r.id === gameState.currentRouteId) || GAME_ROUTES[0];
     const kills = gameState.routeKills[route.id] || 0;
     const req = route.requiredKillsToUnlockNext || 15;
-    this.routeBannerText.setText(`${route.name.toUpperCase()} • DEFEATED: ${kills}/${req}`);
+    this.routeBannerText.setText(`${route.name.toUpperCase()} • DERROTADOS: ${kills}/${req}`);
   }
 
   private refreshPlayerDisplay(): void {
     const player = gameState.activePokemon;
     if (!player) return;
 
-    this.playerInfoText.setText(`${player.displayName} Lv.${player.level}`);
+    this.playerInfoText.setText(`${player.displayName} Nv.${player.level}`);
     this.playerHpText.setText(`${player.currentHp} / ${player.maxHp} HP`);
 
     // Draw HP bar
@@ -208,7 +208,7 @@ export class BattleScene extends Phaser.Scene {
     this.wildSprite.setScale(1.7);
     this.wildSprite.setAlpha(1);
 
-    this.wildInfoText.setText(`${wild.displayName} Lv.${wild.level}`);
+    this.wildInfoText.setText(`${wild.displayName} Nv.${wild.level}`);
     this.wildHpText.setText(`${wild.currentHp} / ${wild.maxHp} HP`);
 
     this.drawHpBar(this.wildHpBarBg, this.wildHpBarFill, 540, 68, 160, 8, wild.currentHp, wild.maxHp);
@@ -310,11 +310,11 @@ export class BattleScene extends Phaser.Scene {
 
       case 'level-up':
       case 'evolution':
-        this.showFloatingText(this.PLAYER_HOME_X, this.PLAYER_HOME_Y - 45, event.type === 'evolution' ? 'EVOLVED!' : 'LEVEL UP!', '#38bdf8', true);
+        this.showFloatingText(this.PLAYER_HOME_X, this.PLAYER_HOME_Y - 45, event.type === 'evolution' ? 'EVOLUIU!' : 'SUBIU DE NÍVEL!', '#38bdf8', true);
         break;
 
       case 'potion-used':
-        this.showFloatingText(this.PLAYER_HOME_X, this.PLAYER_HOME_Y - 35, '+HEAL', '#4ade80', false);
+        this.showFloatingText(this.PLAYER_HOME_X, this.PLAYER_HOME_Y - 35, '+CURA', '#4ade80', false);
         break;
 
       case 'item-drops':
@@ -375,7 +375,7 @@ export class BattleScene extends Phaser.Scene {
         // Show floating damage number
         const dmgX = isPlayer ? this.WILD_HOME_X : this.PLAYER_HOME_X;
         const dmgY = (isPlayer ? this.WILD_HOME_Y : this.PLAYER_HOME_Y) - 30;
-        const text = isCrit ? `CRIT! -${damage}` : `-${damage}`;
+        const text = isCrit ? `CRÍTICO! -${damage}` : `-${damage}`;
         const color = isCrit ? '#facc15' : '#f87171';
         this.showFloatingText(dmgX, dmgY, text, color, isCrit);
       },
@@ -422,7 +422,7 @@ export class BattleScene extends Phaser.Scene {
 
   private playCatchSuccess(wildPokemon?: any): void {
     // Star burst and success floater
-    this.showFloatingText(this.WILD_HOME_X, this.WILD_HOME_Y - 45, 'CAUGHT!', '#facc15', true);
+    this.showFloatingText(this.WILD_HOME_X, this.WILD_HOME_Y - 45, 'CAPTURADO!', '#facc15', true);
 
     this.time.delayedCall(600, () => {
       this.tweens.add({
@@ -444,7 +444,7 @@ export class BattleScene extends Phaser.Scene {
 
   private playCatchFail(): void {
     // Ball pops open and wild re-appears
-    this.showFloatingText(this.WILD_HOME_X, this.WILD_HOME_Y - 40, 'BROKE FREE!', '#cbd5e1', false);
+    this.showFloatingText(this.WILD_HOME_X, this.WILD_HOME_Y - 40, 'ESCAPOU!', '#cbd5e1', false);
     this.pokeballSprite.setVisible(false);
 
     this.tweens.add({

@@ -68,24 +68,24 @@ export class HUD {
       <div class="hud-center">
         ${!hasConscious ? `
           <button class="idle-toggle-btn active red" id="btn-open-revive" style="font-weight: 700; padding: 6px 14px;">
-            💀 Equipe Derrotada! [Reviver / Trocar Time (₽ 10)]
+            💀 Equipe Derrotada! [Reviver / Trocar Equipe (₽ 10)]
           </button>
         ` : `
           <!-- Auto-Hunt Toggle -->
-          <button class="idle-toggle-btn ${s.autoHunt ? 'active' : ''}" id="toggle-hunt" title="Toggle automatic hunting of wild Pokemon">
-            ⚔️ Auto-Hunt: <strong>${s.autoHunt ? 'ON' : 'OFF'}</strong>
+          <button class="idle-toggle-btn ${s.autoHunt ? 'active' : ''}" id="toggle-hunt" title="Alternar caça automática de Pokémon selvagens">
+            ⚔️ Auto-Caçar: <strong>${s.autoHunt ? 'LIGADO' : 'DESLIGADO'}</strong>
           </button>
 
           <!-- Auto-Catch Toggle -->
-          <button class="idle-toggle-btn ${s.autoCatch ? 'active' : ''}" id="toggle-catch" title="Toggle automatic catching using preferred Pokeball">
+          <button class="idle-toggle-btn ${s.autoCatch ? 'active' : ''}" id="toggle-catch" title="Alternar captura automática usando a Pokébola preferida">
             <img src="${preferredBallItem.spriteUrl}" style="width: 16px; height: 16px; vertical-align: middle;" />
-            Auto-Catch: <strong>${s.autoCatch ? 'ON' : 'OFF'}</strong>
+            Auto-Captura: <strong>${s.autoCatch ? 'LIGADO' : 'DESLIGADO'}</strong>
           </button>
 
           <!-- Auto-Heal Toggle -->
-          <button class="idle-toggle-btn ${s.autoPotion ? 'active' : ''}" id="toggle-potion" title="Toggle automatic healing when HP is low">
+          <button class="idle-toggle-btn ${s.autoPotion ? 'active' : ''}" id="toggle-potion" title="Alternar cura automática com poções quando o HP estiver baixo">
             <img src="${preferredPotionItem.spriteUrl}" style="width: 16px; height: 16px; vertical-align: middle;" />
-            Auto-Heal &le;${s.autoPotionThreshold}%: <strong>${s.autoPotion ? 'ON' : 'OFF'}</strong>
+            Auto-Cura &le;${s.autoPotionThreshold}%: <strong>${s.autoPotion ? 'LIGADO' : 'DESLIGADO'}</strong>
           </button>
         `}
       </div>
@@ -97,25 +97,25 @@ export class HUD {
           </button>
         ` : ''}
 
-        <button class="nav-action-btn warning" id="btn-open-shop">
-          🛒 Shop
+        <button class="nav-action-btn warning" id="btn-open-shop" title="Abrir a Loja Poké Mart">
+          🛒 Loja
         </button>
-        <button class="nav-action-btn purple" id="btn-open-bag">
-          🎒 Bag (${Object.values(gameState.inventory).reduce((a, b) => a + b, 0)})
+        <button class="nav-action-btn purple" id="btn-open-bag" title="Abrir a Mochila de Itens">
+          🎒 Mochila (${Object.values(gameState.inventory).reduce((a, b) => a + b, 0)})
         </button>
-        <button class="nav-action-btn" id="btn-open-team">
-          👥 Time (${aliveCount}/${gameState.party.length})
+        <button class="nav-action-btn" id="btn-open-team" title="Gerenciar Equipe de Combate e Box">
+          👥 Equipe (${aliveCount}/${gameState.party.length})
         </button>
-        <button class="nav-action-btn ${activityLog.unreadCount > 0 ? 'gold' : 'secondary'}" id="btn-open-log" title="Diário de Aventuras e Histórico Idle">
-          📜 Log${activityLog.unreadCount > 0 ? ` <span style="background: #ef4444; color: white; padding: 1px 5px; border-radius: 9999px; font-size: 10px; font-weight: 800; margin-left: 2px;">${activityLog.unreadCount}</span>` : ''}
+        <button class="nav-action-btn ${activityLog.unreadCount > 0 ? 'gold' : 'secondary'}" id="btn-open-log" title="Diário de Batalha & Histórico de Atividades">
+          📜 Diário de Batalha${activityLog.unreadCount > 0 ? ` <span style="background: #ef4444; color: white; padding: 1px 5px; border-radius: 9999px; font-size: 10px; font-weight: 800; margin-left: 2px;">${activityLog.unreadCount}</span>` : ''}
         </button>
 
         <!-- Taskbar / Electron Window options -->
-        <button class="nav-action-btn secondary" id="btn-toggle-pin" title="Pin window always on top (PiP)">
-          ${this.isPinned ? '📌 Pinned' : '📍 Pin'}
+        <button class="nav-action-btn secondary" id="btn-toggle-pin" title="Fixar janela sempre no topo (Miniplayer)">
+          ${this.isPinned ? '📌 Fixado' : '📍 Fixar'}
         </button>
-        <button class="nav-action-btn secondary" id="btn-toggle-compact" title="Toggle compact taskbar strip mode">
-          ${this.isCompact ? 'Expand' : 'Compact'}
+        <button class="nav-action-btn secondary" id="btn-toggle-compact" title="Alternar modo barra compacta">
+          ${this.isCompact ? 'Expandir' : 'Compactar'}
         </button>
       </div>
     `;
@@ -250,12 +250,12 @@ export class HUD {
     if (event.type === 'item-drops' && event.drops) {
       this.tickerElement.innerHTML = `<span style="color: #facc15; font-weight: 700;">🎁 [DROPS]</span> ${event.drops.map(d => `<strong style="color: ${d.category === 'ball' ? '#38bdf8' : '#4ade80'};">+${d.count}x ${d.name}</strong>`).join(' &nbsp;•&nbsp; ')}`;
     } else if (event.message) {
-      this.tickerElement.innerText = `[LOG] ${event.message}`;
+      this.tickerElement.innerText = `[REGISTRO] ${event.message}`;
     } else if (event.type === 'bump-attack' && event.attacker === 'player') {
       const p = gameState.activePokemon;
       const w = battleEngine.currentWild;
       if (p && w) {
-        this.tickerElement.innerText = `[BATTLE] ${p.displayName} bumped wild ${w.displayName} for ${event.damage} dmg!`;
+        this.tickerElement.innerText = `[BATALHA] ${p.displayName} atacou ${w.displayName} causando ${event.damage} de dano!`;
       }
     }
 

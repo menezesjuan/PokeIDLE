@@ -15,7 +15,7 @@ export interface GameRoute {
 export const GAME_ROUTES: GameRoute[] = [
   {
     id: 'route-1',
-    name: 'Route 1 (Pallet Town outskirts)',
+    name: 'Rota 1 (Arredores de Pallet)',
     minLevel: 2,
     maxLevel: 5,
     unlockedByDefault: true,
@@ -30,7 +30,7 @@ export const GAME_ROUTES: GameRoute[] = [
   },
   {
     id: 'route-2',
-    name: 'Route 2 & Viridian City',
+    name: 'Rota 2 & Cidade de Viridian',
     minLevel: 5,
     maxLevel: 8,
     requiredKillsToUnlockNext: 15,
@@ -45,7 +45,7 @@ export const GAME_ROUTES: GameRoute[] = [
   },
   {
     id: 'viridian-forest',
-    name: 'Viridian Forest',
+    name: 'Floresta de Viridian',
     minLevel: 6,
     maxLevel: 10,
     requiredKillsToUnlockNext: 20,
@@ -60,7 +60,7 @@ export const GAME_ROUTES: GameRoute[] = [
   },
   {
     id: 'route-3',
-    name: 'Route 3 & Pewter Path',
+    name: 'Rota 3 & Caminho de Pewter',
     minLevel: 9,
     maxLevel: 13,
     requiredKillsToUnlockNext: 20,
@@ -74,7 +74,7 @@ export const GAME_ROUTES: GameRoute[] = [
   },
   {
     id: 'mt-moon',
-    name: 'Mt. Moon',
+    name: 'Monte Lua (Mt. Moon)',
     minLevel: 11,
     maxLevel: 16,
     requiredKillsToUnlockNext: 25,
@@ -88,7 +88,7 @@ export const GAME_ROUTES: GameRoute[] = [
   },
   {
     id: 'route-4',
-    name: 'Route 4 & Cerulean Outskirts',
+    name: 'Rota 4 & Arredores de Cerulean',
     minLevel: 14,
     maxLevel: 20,
     requiredKillsToUnlockNext: 25,
@@ -103,7 +103,7 @@ export const GAME_ROUTES: GameRoute[] = [
   },
   {
     id: 'vermilion-route',
-    name: 'Route 11 (Vermilion Seaside)',
+    name: 'Rota 11 (Litoral de Vermilion)',
     minLevel: 18,
     maxLevel: 24,
     requiredKillsToUnlockNext: 30,
@@ -117,7 +117,7 @@ export const GAME_ROUTES: GameRoute[] = [
   },
   {
     id: 'rock-tunnel',
-    name: 'Rock Tunnel',
+    name: 'Túnel de Pedra (Rock Tunnel)',
     minLevel: 22,
     maxLevel: 28,
     requiredKillsToUnlockNext: 35,
@@ -131,7 +131,7 @@ export const GAME_ROUTES: GameRoute[] = [
   },
   {
     id: 'pokemon-tower',
-    name: 'Pokémon Tower (Lavender Town)',
+    name: 'Torre Pokémon (Lavender Town)',
     minLevel: 25,
     maxLevel: 32,
     requiredKillsToUnlockNext: 40,
@@ -145,7 +145,7 @@ export const GAME_ROUTES: GameRoute[] = [
   },
   {
     id: 'safari-zone',
-    name: 'Safari Zone',
+    name: 'Zona do Safari',
     minLevel: 30,
     maxLevel: 38,
     requiredKillsToUnlockNext: 45,
@@ -161,7 +161,7 @@ export const GAME_ROUTES: GameRoute[] = [
   },
   {
     id: 'seafoam-islands',
-    name: 'Seafoam Islands',
+    name: 'Ilhas das Espumas (Seafoam)',
     minLevel: 35,
     maxLevel: 44,
     requiredKillsToUnlockNext: 50,
@@ -176,7 +176,7 @@ export const GAME_ROUTES: GameRoute[] = [
   },
   {
     id: 'cinnabar-volcano',
-    name: 'Cinnabar Volcano',
+    name: 'Vulcão de Cinnabar',
     minLevel: 40,
     maxLevel: 50,
     requiredKillsToUnlockNext: 55,

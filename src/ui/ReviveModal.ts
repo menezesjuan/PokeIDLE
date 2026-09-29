@@ -82,7 +82,7 @@ export class ReviveModal {
                     <img src="${p.spriteFront}" alt="${p.displayName}" style="width: 42px; height: 42px; ${isDead ? 'filter: grayscale(1) opacity(0.6);' : ''}" />
                     <div>
                       <div style="font-weight: 700; font-size: 13px;">
-                        ${p.displayName} <span style="font-size: 11px; color: #60a5fa;">Lv.${p.level}</span>
+                        ${p.displayName} <span style="font-size: 11px; color: #60a5fa;">Nv.${p.level}</span>
                         ${isDead ? '<span style="color: #ef4444; font-size: 10px; margin-left: 6px;">[DESMAIADO]</span>' : '<span style="color: #34d399; font-size: 10px; margin-left: 6px;">[PRONTO]</span>'}
                       </div>
                       <div style="font-size: 11px; color: #cbd5e1; font-family: monospace;">
