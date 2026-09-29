@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PokeIDLE - Taskbar Pokémon Hero</title>
+  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" />
+</head>
+<body>
+  <div id="app">
+    <!-- Battle Canvas Area -->
+    <div id="phaser-container"></div>
+
+    <!-- Live Event Ticker -->
+    <div id="status-ticker" class="status-ticker">
+      <span>[SYSTEM] Ready for Pokémon adventure. Hunting wild Pokémon...</span>
+      <span style="opacity: 0.6;">PokeIDLE v1.0 • Taskbar Companion</span>
+    </div>
+
+    <!-- Permanent Taskbar HUD Bar -->
+    <div id="hud-container" class="taskbar-hud"></div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
