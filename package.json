@@ -8,7 +8,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "electron:dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:start": "electron ."
+    "electron:start": "electron .",
+    "chrome:pip": "powershell -Command \"Start-Process 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe' -ArgumentList '--app=http://localhost:5173 --window-size=440,280'\"",
+    "edge:pip": "powershell -Command \"Start-Process 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe' -ArgumentList '--app=http://localhost:5173 --window-size=440,280'\""
   },
   "repository": {
     "type": "git",

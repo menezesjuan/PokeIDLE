@@ -437,5 +437,45 @@ body {
 
 /* Responsive compact mode */
 body.compact-mode #phaser-container {
-  height: 150px;
+  height: 135px;
+}
+
+/* PiP / Corner Window Mode */
+@media (max-width: 580px) {
+  #phaser-container {
+    height: 135px;
+  }
+  .taskbar-hud {
+    padding: 4px 8px;
+    gap: 6px;
+    justify-content: center;
+  }
+  .hud-left, .hud-center, .hud-right {
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .idle-toggle-btn {
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+  .nav-action-btn {
+    padding: 3px 7px;
+    font-size: 10px;
+  }
+  .money-badge {
+    padding: 2px 6px;
+    font-size: 11px;
+  }
+  .status-ticker {
+    font-size: 9px;
+    padding: 2px 8px;
+  }
+  .modal-content {
+    width: 95%;
+    max-height: 90vh;
+  }
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
 }
