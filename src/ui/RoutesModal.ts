@@ -34,6 +34,7 @@ export class RoutesModal {
 
     this.container.innerHTML = `
       <div class="modal-content" style="max-width: 720px;">
+        <div class="sheet-handle"></div>
         <div class="modal-header">
           <div class="modal-title">🗺️ Mapa de Kanto & Hunts de Caça</div>
           <button class="modal-close-btn" id="routes-close">✕</button>

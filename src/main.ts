@@ -13,32 +13,32 @@ async function initStarterSelection(): Promise<void> {
     starterModal.innerHTML = `
       <div class="modal-content" style="max-width: 520px; text-align: center;">
         <div class="modal-header" style="justify-content: center;">
-          <div class="modal-title">⭐ Choose Your Starter Pokémon!</div>
+          <div class="modal-title">⭐ Escolha seu Pokémon Inicial!</div>
         </div>
         <div class="modal-body">
           <p style="color: #94a3b8; margin-bottom: 20px;">
-            Welcome to <strong>PokeIDLE</strong>! Choose your first companion to begin your automatic journey:
+            Boas-vindas ao <strong>PokeIDLE</strong>! Escolha seu primeiro companheiro para iniciar sua jornada:
           </p>
           <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
             <div class="poke-card starter-option" data-starter="pikachu" style="cursor: pointer; text-align: center;">
               <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif" style="width: 56px; height: 56px; margin: 0 auto;" />
               <div style="font-weight: 700; margin-top: 6px;">Pikachu</div>
-              <span class="type-pill type-electric">Electric</span>
+              <span class="type-pill type-electric">Elétrico</span>
             </div>
             <div class="poke-card starter-option" data-starter="charmander" style="cursor: pointer; text-align: center;">
               <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/4.gif" style="width: 56px; height: 56px; margin: 0 auto;" />
               <div style="font-weight: 700; margin-top: 6px;">Charmander</div>
-              <span class="type-pill type-fire">Fire</span>
+              <span class="type-pill type-fire">Fogo</span>
             </div>
             <div class="poke-card starter-option" data-starter="squirtle" style="cursor: pointer; text-align: center;">
               <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/7.gif" style="width: 56px; height: 56px; margin: 0 auto;" />
               <div style="font-weight: 700; margin-top: 6px;">Squirtle</div>
-              <span class="type-pill type-water">Water</span>
+              <span class="type-pill type-water">Água</span>
             </div>
             <div class="poke-card starter-option" data-starter="bulbasaur" style="cursor: pointer; text-align: center;">
               <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/1.gif" style="width: 56px; height: 56px; margin: 0 auto;" />
               <div style="font-weight: 700; margin-top: 6px;">Bulbasaur</div>
-              <span class="type-pill type-grass">Grass</span>
+              <span class="type-pill type-grass">Planta</span>
             </div>
           </div>
         </div>
@@ -74,8 +74,8 @@ async function startApp(): Promise<void> {
   const config = createGameConfig('phaser-container');
   new Phaser.Game(config);
 
-  // Initialize HUD
-  new HUD('hud-container', 'status-ticker');
+  // Initialize HUD with bottom container, ticker and top container
+  new HUD('hud-container', 'status-ticker', 'hud-top');
 
   // Start Idle Battle Engine
   if (gameState.settings.autoHunt) {

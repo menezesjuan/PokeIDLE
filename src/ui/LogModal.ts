@@ -61,6 +61,7 @@ export class LogModal {
 
     this.container.innerHTML = `
       <div class="modal-content" style="max-width: 680px; max-height: 85vh; display: flex; flex-direction: column;">
+        <div class="sheet-handle"></div>
         <div class="modal-header">
           <div>
             <div class="modal-title">📜 Diário de Batalha</div>

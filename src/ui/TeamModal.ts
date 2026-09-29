@@ -30,6 +30,7 @@ export class TeamModal {
 
     this.container.innerHTML = `
       <div class="modal-content">
+        <div class="sheet-handle"></div>
         <div class="modal-header">
           <div class="modal-title">👥 Equipe Pokémon & Box</div>
           <button class="modal-close-btn" id="team-close">✕</button>

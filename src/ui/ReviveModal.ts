@@ -43,6 +43,7 @@ export class ReviveModal {
 
     this.container.innerHTML = `
       <div class="modal-content" style="max-width: 600px;">
+        <div class="sheet-handle"></div>
         <div class="modal-header" style="background: #1e1b4b; border-bottom: 2px solid #ef4444;">
           <div class="modal-title" style="color: #f87171;">
             💀 Equipe de Combate Derrotada!

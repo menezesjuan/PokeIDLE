@@ -30,6 +30,7 @@ export class ShopModal {
 
     this.container.innerHTML = `
       <div class="modal-content">
+        <div class="sheet-handle"></div>
         <div class="modal-header">
           <div class="modal-title">
             🛒 Poké Mart & Centro de Trocas

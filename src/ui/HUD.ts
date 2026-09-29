@@ -23,19 +23,24 @@ declare global {
 export class HUD {
   private element: HTMLElement;
   private tickerElement: HTMLElement;
+  private topElement?: HTMLElement | null;
+  private pogoMenuOverlay?: HTMLElement | null;
   private isPinned: boolean = false;
   private isCompact: boolean = false;
   private pipWindow: Window | null = null;
 
-  constructor(hudContainerId: string, tickerContainerId: string) {
+  constructor(hudContainerId: string, tickerContainerId: string, hudTopId: string = 'hud-top') {
     this.element = document.getElementById(hudContainerId)!;
     this.tickerElement = document.getElementById(tickerContainerId)!;
+    this.topElement = document.getElementById(hudTopId);
 
     if (this.tickerElement) {
       this.tickerElement.style.cursor = 'pointer';
-      this.tickerElement.title = 'Clique para abrir o Diário de Aventuras e Resumo Idle';
+      this.tickerElement.title = 'Toque para abrir o Diário de Batalha';
       this.tickerElement.addEventListener('click', () => logModal.open());
     }
+
+    this.createPogoMenuOverlay();
 
     this.render();
     gameState.subscribe(() => this.render());
@@ -43,115 +48,209 @@ export class HUD {
     battleEngine.subscribe((event) => this.handleCombatEvent(event));
   }
 
-  public render(): void {
+  private createPogoMenuOverlay(): void {
+    if (document.getElementById('pokeball-menu-overlay')) {
+      this.pogoMenuOverlay = document.getElementById('pokeball-menu-overlay');
+      return;
+    }
+
+    this.pogoMenuOverlay = document.createElement('div');
+    this.pogoMenuOverlay.id = 'pokeball-menu-overlay';
+    this.pogoMenuOverlay.className = 'pogo-overlay-menu';
+    document.body.appendChild(this.pogoMenuOverlay);
+
+    this.pogoMenuOverlay.addEventListener('click', (e) => {
+      if (e.target === this.pogoMenuOverlay) {
+        this.closePogoMenu();
+      }
+    });
+  }
+
+  private openPogoMenu(): void {
+    if (!this.pogoMenuOverlay) return;
+    this.renderPogoMenuContent();
+    this.pogoMenuOverlay.classList.add('active');
+  }
+
+  private closePogoMenu(): void {
+    if (!this.pogoMenuOverlay) return;
+    this.pogoMenuOverlay.classList.remove('active');
+  }
+
+  private renderPogoMenuContent(): void {
+    if (!this.pogoMenuOverlay) return;
+
+    const unread = activityLog.unreadCount;
     const s = gameState.settings;
+
+    this.pogoMenuOverlay.innerHTML = `
+      <div class="pogo-menu-grid">
+        <!-- 1. Mochila -->
+        <button class="pogo-menu-item" id="pogo-btn-bag">
+          <div class="pogo-menu-circle purple">🎒</div>
+          <span class="pogo-menu-label">Mochila</span>
+        </button>
+
+        <!-- 2. Loja -->
+        <button class="pogo-menu-item" id="pogo-btn-shop">
+          <div class="pogo-menu-circle gold">🛒</div>
+          <span class="pogo-menu-label">Loja</span>
+        </button>
+
+        <!-- 3. Equipe -->
+        <button class="pogo-menu-item" id="pogo-btn-team">
+          <div class="pogo-menu-circle blue">👥</div>
+          <span class="pogo-menu-label">Equipe</span>
+        </button>
+
+        <!-- 4. Rotas -->
+        <button class="pogo-menu-item" id="pogo-btn-routes">
+          <div class="pogo-menu-circle green">🗺️</div>
+          <span class="pogo-menu-label">Rotas & Hunts</span>
+        </button>
+
+        <!-- 5. Diário de Batalha -->
+        <button class="pogo-menu-item" id="pogo-btn-log">
+          <div class="pogo-menu-circle cyan" style="position: relative;">
+            📜
+            ${unread > 0 ? `
+              <span style="position: absolute; top: -4px; right: -4px; background: #ef4444; color: white; border-radius: 9999px; font-size: 11px; padding: 2px 6px; font-weight: 800; border: 2px solid #ffffff;">
+                ${unread}
+              </span>
+            ` : ''}
+          </div>
+          <span class="pogo-menu-label">Diário</span>
+        </button>
+
+        <!-- 6. Automações -->
+        <button class="pogo-menu-item" id="pogo-btn-auto">
+          <div class="pogo-menu-circle slate">⚙️</div>
+          <span class="pogo-menu-label">Automações</span>
+        </button>
+      </div>
+
+      <!-- Quick Toggles Sub-bar in Menu -->
+      <div style="display: flex; gap: 8px; margin-bottom: 30px; flex-wrap: wrap; justify-content: center; max-width: 90%;">
+        <button class="glass-pill ${s.autoHunt ? 'green' : ''}" id="pogo-toggle-hunt">
+          ⚔️ Auto-Caçar: <strong>${s.autoHunt ? 'ON' : 'OFF'}</strong>
+        </button>
+        <button class="glass-pill ${s.autoCatch ? 'green' : ''}" id="pogo-toggle-catch">
+          🎯 Auto-Captura: <strong>${s.autoCatch ? 'ON' : 'OFF'}</strong>
+        </button>
+        <button class="glass-pill ${s.autoPotion ? 'green' : ''}" id="pogo-toggle-heal">
+          🧪 Auto-Cura: <strong>${s.autoPotion ? 'ON' : 'OFF'}</strong>
+        </button>
+      </div>
+
+      <!-- Close Button -->
+      <button class="pogo-menu-close-btn" id="btn-close-pogo-menu" title="Fechar Menu">
+        ✕
+      </button>
+    `;
+
+    // Attach menu actions
+    this.pogoMenuOverlay.querySelector('#pogo-btn-bag')?.addEventListener('click', () => {
+      this.closePogoMenu();
+      bagModal.open();
+    });
+
+    this.pogoMenuOverlay.querySelector('#pogo-btn-shop')?.addEventListener('click', () => {
+      this.closePogoMenu();
+      shopModal.open();
+    });
+
+    this.pogoMenuOverlay.querySelector('#pogo-btn-team')?.addEventListener('click', () => {
+      this.closePogoMenu();
+      teamModal.open();
+    });
+
+    this.pogoMenuOverlay.querySelector('#pogo-btn-routes')?.addEventListener('click', () => {
+      this.closePogoMenu();
+      routesModal.open();
+    });
+
+    this.pogoMenuOverlay.querySelector('#pogo-btn-log')?.addEventListener('click', () => {
+      this.closePogoMenu();
+      logModal.open();
+    });
+
+    this.pogoMenuOverlay.querySelector('#pogo-btn-auto')?.addEventListener('click', () => {
+      // Toggle auto hunt directly
+      const next = !gameState.settings.autoHunt;
+      gameState.updateSettings({ autoHunt: next });
+      if (next && !battleEngine.isBattling) battleEngine.start();
+      this.renderPogoMenuContent();
+    });
+
+    this.pogoMenuOverlay.querySelector('#pogo-toggle-hunt')?.addEventListener('click', () => {
+      const next = !gameState.settings.autoHunt;
+      gameState.updateSettings({ autoHunt: next });
+      if (next && !battleEngine.isBattling) battleEngine.start();
+      this.renderPogoMenuContent();
+    });
+
+    this.pogoMenuOverlay.querySelector('#pogo-toggle-catch')?.addEventListener('click', () => {
+      gameState.updateSettings({ autoCatch: !gameState.settings.autoCatch });
+      this.renderPogoMenuContent();
+    });
+
+    this.pogoMenuOverlay.querySelector('#pogo-toggle-heal')?.addEventListener('click', () => {
+      gameState.updateSettings({ autoPotion: !gameState.settings.autoPotion });
+      this.renderPogoMenuContent();
+    });
+
+    this.pogoMenuOverlay.querySelector('#btn-close-pogo-menu')?.addEventListener('click', () => {
+      this.closePogoMenu();
+    });
+  }
+
+  public render(): void {
+    this.renderTopBar();
+    this.renderBottomHub();
+  }
+
+  private renderTopBar(): void {
+    if (!this.topElement) return;
+
     const currentRoute = GAME_ROUTES.find(r => r.id === gameState.currentRouteId) || GAME_ROUTES[0];
-    const preferredBallItem = GAME_ITEMS[s.preferredBall] || GAME_ITEMS['poke-ball'];
-    const preferredPotionItem = GAME_ITEMS[s.preferredPotion] || GAME_ITEMS['potion'];
     const isFrontier = gameState.isAtFrontierRoute();
-    const hasConscious = gameState.hasConsciousPartyMember;
-    const aliveCount = gameState.party.filter(p => p.currentHp > 0).length;
-    const faintedCount = gameState.party.length - aliveCount;
+    const kills = gameState.routeKills[currentRoute.id] || 0;
+    const reqKills = currentRoute.requiredKillsToUnlockNext || 15;
 
-    this.element.innerHTML = `
-      <div class="hud-left">
-        <div class="money-badge">
-          <span class="icon">₽</span>
+    this.topElement.innerHTML = `
+      <div class="hud-top-left">
+        <!-- Hunt Route Pill -->
+        <button class="glass-pill" id="btn-open-routes" title="${isFrontier ? 'Última Hunt (Auto-Avanço Ativo)' : 'Hunt Anterior (Treino Manual)'}">
+          <span>${isFrontier ? '⚡' : '🌾'}</span>
+          <span>${currentRoute.name.split('(')[0]}</span>
+          <span style="font-size: 10px; color: #94a3b8; font-family: monospace;">(${kills}/${reqKills})</span>
+        </button>
+      </div>
+
+      <div class="hud-top-right">
+        <!-- Pokédollars Pill -->
+        <button class="glass-pill gold" id="btn-top-shop" title="Abrir Poké Mart">
+          <span>₽</span>
           <span>${gameState.money.toLocaleString()}</span>
-        </div>
-
-        <button class="nav-action-btn secondary" id="btn-open-routes" title="${isFrontier ? 'Última Hunt (Auto-Avanço Ativo)' : 'Hunt Anterior (Treino Manual)'}">
-          ${isFrontier ? '⚡' : '🌾'} ${currentRoute.name.split('(')[0]}
-        </button>
-      </div>
-
-      <div class="hud-center">
-        ${!hasConscious ? `
-          <button class="idle-toggle-btn active red" id="btn-open-revive" style="font-weight: 700; padding: 6px 14px;">
-            💀 Equipe Derrotada! [Reviver / Trocar Equipe (₽ 10)]
-          </button>
-        ` : `
-          <!-- Auto-Hunt Toggle -->
-          <button class="idle-toggle-btn ${s.autoHunt ? 'active' : ''}" id="toggle-hunt" title="Alternar caça automática de Pokémon selvagens">
-            ⚔️ Auto-Caçar: <strong>${s.autoHunt ? 'LIGADO' : 'DESLIGADO'}</strong>
-          </button>
-
-          <!-- Auto-Catch Toggle -->
-          <button class="idle-toggle-btn ${s.autoCatch ? 'active' : ''}" id="toggle-catch" title="Alternar captura automática usando a Pokébola preferida">
-            <img src="${preferredBallItem.spriteUrl}" style="width: 16px; height: 16px; vertical-align: middle;" />
-            Auto-Captura: <strong>${s.autoCatch ? 'LIGADO' : 'DESLIGADO'}</strong>
-          </button>
-
-          <!-- Auto-Heal Toggle -->
-          <button class="idle-toggle-btn ${s.autoPotion ? 'active' : ''}" id="toggle-potion" title="Alternar cura automática com poções quando o HP estiver baixo">
-            <img src="${preferredPotionItem.spriteUrl}" style="width: 16px; height: 16px; vertical-align: middle;" />
-            Auto-Cura &le;${s.autoPotionThreshold}%: <strong>${s.autoPotion ? 'LIGADO' : 'DESLIGADO'}</strong>
-          </button>
-        `}
-      </div>
-
-      <div class="hud-right">
-        ${faintedCount > 0 ? `
-          <button class="nav-action-btn red" id="btn-quick-revive" title="Reviver Pokémons desmaiados">
-            💀 Reviver (${faintedCount})
-          </button>
-        ` : ''}
-
-        <button class="nav-action-btn warning" id="btn-open-shop" title="Abrir a Loja Poké Mart">
-          🛒 Loja
-        </button>
-        <button class="nav-action-btn purple" id="btn-open-bag" title="Abrir a Mochila de Itens">
-          🎒 Mochila (${Object.values(gameState.inventory).reduce((a, b) => a + b, 0)})
-        </button>
-        <button class="nav-action-btn" id="btn-open-team" title="Gerenciar Equipe de Combate e Box">
-          👥 Equipe (${aliveCount}/${gameState.party.length})
-        </button>
-        <button class="nav-action-btn ${activityLog.unreadCount > 0 ? 'gold' : 'secondary'}" id="btn-open-log" title="Diário de Batalha & Histórico de Atividades">
-          📜 Diário de Batalha${activityLog.unreadCount > 0 ? ` <span style="background: #ef4444; color: white; padding: 1px 5px; border-radius: 9999px; font-size: 10px; font-weight: 800; margin-left: 2px;">${activityLog.unreadCount}</span>` : ''}
         </button>
 
-        <!-- Taskbar / Electron Window options -->
-        <button class="nav-action-btn secondary" id="btn-toggle-pin" title="Fixar janela sempre no topo (Miniplayer)">
-          ${this.isPinned ? '📌 Fixado' : '📍 Fixar'}
+        <!-- Pin / PiP Window Button -->
+        <button class="glass-pill icon-only" id="btn-toggle-pin" title="Fixar no topo / Janela PiP">
+          <span>${this.isPinned ? '📌' : '📍'}</span>
         </button>
-        <button class="nav-action-btn secondary" id="btn-toggle-compact" title="Alternar modo barra compacta">
-          ${this.isCompact ? 'Expandir' : 'Compactar'}
+
+        <!-- Compact Toggle -->
+        <button class="glass-pill icon-only" id="btn-toggle-compact" title="Alternar modo compacto">
+          <span>${this.isCompact ? '🗖' : '🗗'}</span>
         </button>
       </div>
     `;
 
-    this.attachEventListeners();
-  }
-
-  private attachEventListeners(): void {
-    // Toggles
-    this.element.querySelector('#toggle-hunt')?.addEventListener('click', () => {
-      const next = !gameState.settings.autoHunt;
-      gameState.updateSettings({ autoHunt: next });
-      if (next && !battleEngine.isBattling) {
-        battleEngine.start();
-      }
-    });
-
-    this.element.querySelector('#toggle-catch')?.addEventListener('click', () => {
-      gameState.updateSettings({ autoCatch: !gameState.settings.autoCatch });
-    });
-
-    this.element.querySelector('#toggle-potion')?.addEventListener('click', () => {
-      gameState.updateSettings({ autoPotion: !gameState.settings.autoPotion });
-    });
-
-    // Modals
-    this.element.querySelector('#btn-open-routes')?.addEventListener('click', () => routesModal.open());
-    this.element.querySelector('#btn-open-shop')?.addEventListener('click', () => shopModal.open());
-    this.element.querySelector('#btn-open-bag')?.addEventListener('click', () => bagModal.open());
-    this.element.querySelector('#btn-open-team')?.addEventListener('click', () => teamModal.open());
-    this.element.querySelector('#btn-open-log')?.addEventListener('click', () => logModal.open());
-    this.element.querySelector('#btn-open-revive')?.addEventListener('click', () => reviveModal.open());
-    this.element.querySelector('#btn-quick-revive')?.addEventListener('click', () => reviveModal.open());
+    this.topElement.querySelector('#btn-open-routes')?.addEventListener('click', () => routesModal.open());
+    this.topElement.querySelector('#btn-top-shop')?.addEventListener('click', () => shopModal.open());
 
     // Window Pinning & PiP Miniplayer
-    this.element.querySelector('#btn-toggle-pin')?.addEventListener('click', async () => {
+    this.topElement.querySelector('#btn-toggle-pin')?.addEventListener('click', async () => {
       if (window.electronAPI?.toggleAlwaysOnTop) {
         this.isPinned = !this.isPinned;
         window.electronAPI.toggleAlwaysOnTop(this.isPinned);
@@ -160,18 +259,90 @@ export class HUD {
       } else if ('documentPictureInPicture' in window) {
         await this.toggleDocumentPip();
       } else {
-        // Fallback popup window
         window.open(window.location.href, 'PokeIDLE_PiP', 'width=440,height=280,status=no,toolbar=no,menubar=no,location=no');
       }
     });
 
     // Compact Mode
-    this.element.querySelector('#btn-toggle-compact')?.addEventListener('click', () => {
+    this.topElement.querySelector('#btn-toggle-compact')?.addEventListener('click', () => {
       this.isCompact = !this.isCompact;
       document.body.classList.toggle('compact-mode', this.isCompact);
       if (window.electronAPI?.setCompactMode) {
         window.electronAPI.setCompactMode(this.isCompact);
       }
+      this.render();
+    });
+  }
+
+  private renderBottomHub(): void {
+    const s = gameState.settings;
+    const active = gameState.activePokemon;
+    const hasConscious = gameState.hasConsciousPartyMember;
+    const aliveCount = gameState.party.filter(p => p.currentHp > 0).length;
+    const unread = activityLog.unreadCount;
+
+    this.element.innerHTML = `
+      <!-- Left: Buddy Leader Profile Pill -->
+      <div class="pogo-buddy-card" id="btn-open-team" title="Ver Equipe Pokémon">
+        <div class="pogo-buddy-avatar">
+          <img src="${active ? active.spriteFront : 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'}" />
+          ${active ? `<div class="pogo-buddy-level">${active.level}</div>` : ''}
+        </div>
+        <div class="pogo-buddy-info">
+          <div class="pogo-buddy-name">${active ? active.displayName : 'Equipe'}</div>
+          <div class="pogo-buddy-hp">
+            ${active ? `${active.currentHp}/${active.maxHp} HP` : ''}
+            <span style="color: ${aliveCount > 0 ? '#38bdf8' : '#ef4444'}; font-size: 9px; margin-left: 4px;">
+              (${aliveCount}/${gameState.party.length})
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: 3D Pokémon GO Poké Ball Menu Button -->
+      <div class="pogo-pokeball-btn-wrapper">
+        <button class="pogo-pokeball-btn" id="btn-pokeball-menu" title="Abrir Menu Pokémon GO">
+          <div class="pogo-pokeball-center"></div>
+        </button>
+      </div>
+
+      <!-- Right: Quick Actions & Automation Status -->
+      <div class="pogo-quick-group">
+        ${!hasConscious ? `
+          <button class="glass-pill" id="btn-open-revive" style="background: rgba(239, 68, 68, 0.35); border-color: #ef4444; color: #fca5a5;">
+            💀 Reviver (₽ 10)
+          </button>
+        ` : `
+          <!-- Quick Automation Toggles Pill -->
+          <button class="pogo-quick-btn" id="btn-quick-auto-toggle" title="Auto-Caçar / Auto-Captura / Auto-Cura">
+            <span>⚙️</span>
+            <div style="display: flex; gap: 4px; align-items: center;">
+              <span class="status-dot ${s.autoHunt ? 'on' : ''}" title="Auto-Hunt"></span>
+              <span class="status-dot ${s.autoCatch ? 'on' : ''}" title="Auto-Catch"></span>
+              <span class="status-dot ${s.autoPotion ? 'on' : ''}" title="Auto-Heal"></span>
+            </div>
+          </button>
+
+          <!-- Quick Diário Button -->
+          <button class="pogo-quick-btn ${unread > 0 ? 'active' : ''}" id="btn-quick-log" title="Diário de Batalha">
+            <span>📜</span>
+            ${unread > 0 ? `<span style="background: #ef4444; color: white; padding: 1px 5px; border-radius: 9999px; font-size: 9px; font-weight: 800;">${unread}</span>` : ''}
+          </button>
+        `}
+      </div>
+    `;
+
+    // Attach bottom events
+    this.element.querySelector('#btn-open-team')?.addEventListener('click', () => teamModal.open());
+    this.element.querySelector('#btn-pokeball-menu')?.addEventListener('click', () => this.openPogoMenu());
+    this.element.querySelector('#btn-open-revive')?.addEventListener('click', () => reviveModal.open());
+    this.element.querySelector('#btn-quick-log')?.addEventListener('click', () => logModal.open());
+
+    this.element.querySelector('#btn-quick-auto-toggle')?.addEventListener('click', () => {
+      // Toggle auto-hunt quickly or open menu
+      const next = !gameState.settings.autoHunt;
+      gameState.updateSettings({ autoHunt: next });
+      if (next && !battleEngine.isBattling) battleEngine.start();
       this.render();
     });
   }
