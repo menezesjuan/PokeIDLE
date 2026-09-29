@@ -1,3 +1,5 @@
+import { FALLBACK_POKEMON_DB } from './fallbackPokemon';
+
 export interface BaseStats {
   hp: number;
   attack: number;
@@ -103,76 +105,129 @@ class PokeApiClient {
     const cached = this.getFromLocalCache<PokemonSpeciesInfo>(key);
     if (cached) return cached;
 
-    // 1. Fetch Pokemon basic data
-    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${idOrName}`);
-    if (!res.ok) {
-      throw new Error(`Pokemon not found: ${idOrName}`);
-    }
-    const data = await res.json();
-
-    const id = data.id;
-    const name = data.name;
-    const types = data.types.map((t: any) => t.type.name);
-
-    // Extract stats
-    const statsMap: Record<string, number> = {};
-    for (const s of data.stats) {
-      statsMap[s.stat.name] = s.base_stat;
-    }
-
-    const baseStats: BaseStats = {
-      hp: statsMap['hp'] || 45,
-      attack: statsMap['attack'] || 49,
-      defense: statsMap['defense'] || 49,
-      spAttack: statsMap['special-attack'] || 65,
-      spDefense: statsMap['special-defense'] || 65,
-      speed: statsMap['speed'] || 45,
-    };
-
-    // Animated showdown sprite or fallback to front_default
-    const showdownFront = data.sprites?.other?.showdown?.front_default;
-    const showdownBack = data.sprites?.other?.showdown?.back_default;
-    const spriteFront = showdownFront || data.sprites?.front_default || `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
-    const spriteBack = showdownBack || data.sprites?.back_default || `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/${id}.png`;
-    const artwork = data.sprites?.other?.['official-artwork']?.front_default || spriteFront;
-
-    // 2. Fetch Species data for catch rate & evolution chain
-    let catchRate = 120;
-    let evolutions: EvolutionTriggerInfo[] = [];
+    // Check fallback database
+    const fallback = FALLBACK_POKEMON_DB[String(idOrName).toLowerCase()];
 
     try {
-      const speciesRes = await fetch(data.species.url);
-      if (speciesRes.ok) {
-        const speciesData = await speciesRes.json();
-        catchRate = speciesData.capture_rate ?? 120;
+      // 1. Fetch Pokemon basic data with a 2500ms timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
 
-        if (speciesData.evolution_chain?.url) {
-          evolutions = await this.getEvolutionsForSpecies(speciesData.evolution_chain.url, name);
-        }
+      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${idOrName}`, {
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        throw new Error(`Pokemon not found: ${idOrName}`);
       }
-    } catch (e) {
-      console.warn(`Could not fetch species/evolution for ${name}:`, e);
+      const data = await res.json();
+
+      const id = data.id;
+      const name = data.name;
+      const types = data.types.map((t: any) => t.type.name);
+
+      // Extract stats
+      const statsMap: Record<string, number> = {};
+      for (const s of data.stats) {
+        statsMap[s.stat.name] = s.base_stat;
+      }
+
+      const baseStats: BaseStats = {
+        hp: statsMap['hp'] || 45,
+        attack: statsMap['attack'] || 49,
+        defense: statsMap['defense'] || 49,
+        spAttack: statsMap['special-attack'] || 65,
+        spDefense: statsMap['special-defense'] || 65,
+        speed: statsMap['speed'] || 45,
+      };
+
+      // Animated showdown sprite or fallback to front_default
+      const showdownFront = data.sprites?.other?.showdown?.front_default;
+      const showdownBack = data.sprites?.other?.showdown?.back_default;
+      const spriteFront = showdownFront || data.sprites?.front_default || `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+      const spriteBack = showdownBack || data.sprites?.back_default || `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/${id}.png`;
+      const artwork = data.sprites?.other?.['official-artwork']?.front_default || spriteFront;
+
+      // 2. Fetch Species data for catch rate & evolution chain
+      let catchRate = 120;
+      let evolutions: EvolutionTriggerInfo[] = [];
+
+      try {
+        const speciesRes = await fetch(data.species.url, { signal: AbortSignal.timeout(2000) });
+        if (speciesRes.ok) {
+          const speciesData = await speciesRes.json();
+          catchRate = speciesData.capture_rate ?? 120;
+
+          if (speciesData.evolution_chain?.url) {
+            evolutions = await this.getEvolutionsForSpecies(speciesData.evolution_chain.url, name);
+          }
+        }
+      } catch (e) {
+        // Species fetch timeout/offline: use fallback evolutions if available
+        if (fallback?.evolutions) evolutions = fallback.evolutions;
+      }
+
+      const result: PokemonSpeciesInfo = {
+        id,
+        name,
+        displayName: capitalize(name),
+        types,
+        baseStats,
+        spriteFront,
+        spriteBack,
+        artwork,
+        catchRate,
+        baseExp: data.base_experience || 64,
+        evolutions: evolutions.length > 0 ? evolutions : (fallback?.evolutions || []),
+      };
+
+      this.saveToLocalCache(key, result);
+      this.saveToLocalCache(`pokemon_${id}`, result);
+      return result;
+    } catch (err) {
+      console.warn(`PokéAPI network fetch failed for ${idOrName}, using embedded offline data:`, err);
+
+      // Return rich fallback from database
+      if (fallback) {
+        const id = fallback.id || 1;
+        const name = fallback.name || String(idOrName);
+        const result: PokemonSpeciesInfo = {
+          id,
+          name,
+          displayName: fallback.displayName || capitalize(name),
+          types: fallback.types || ['normal'],
+          baseStats: fallback.baseStats || { hp: 45, attack: 49, defense: 49, spAttack: 65, spDefense: 65, speed: 45 },
+          spriteFront: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/${id}.gif`,
+          spriteBack: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/${id}.png`,
+          artwork: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
+          catchRate: fallback.catchRate || 120,
+          baseExp: fallback.baseExp || 64,
+          evolutions: fallback.evolutions || [],
+        };
+        this.saveToLocalCache(key, result);
+        return result;
+      }
+
+      // Generic fallback for any other ID
+      const safeId = typeof idOrName === 'number' ? idOrName : 25;
+      const safeName = String(idOrName);
+      const genericResult: PokemonSpeciesInfo = {
+        id: safeId,
+        name: safeName,
+        displayName: capitalize(safeName),
+        types: ['normal'],
+        baseStats: { hp: 50, attack: 50, defense: 50, spAttack: 50, spDefense: 50, speed: 50 },
+        spriteFront: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${safeId}.png`,
+        spriteBack: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/${safeId}.png`,
+        artwork: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${safeId}.png`,
+        catchRate: 150,
+        baseExp: 60,
+        evolutions: [],
+      };
+      this.saveToLocalCache(key, genericResult);
+      return genericResult;
     }
-
-    const result: PokemonSpeciesInfo = {
-      id,
-      name,
-      displayName: capitalize(name),
-      types,
-      baseStats,
-      spriteFront,
-      spriteBack,
-      artwork,
-      catchRate,
-      baseExp: data.base_experience || 64,
-      evolutions,
-    };
-
-    this.saveToLocalCache(key, result);
-    // Also cache by ID
-    this.saveToLocalCache(`pokemon_${id}`, result);
-
-    return result;
   }
 
   private async getEvolutionsForSpecies(chainUrl: string, currentSpeciesName: string): Promise<EvolutionTriggerInfo[]> {
