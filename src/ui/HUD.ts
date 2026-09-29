@@ -7,6 +7,8 @@ import { shopModal } from './ShopModal';
 import { teamModal } from './TeamModal';
 import { routesModal } from './RoutesModal';
 import { reviveModal } from './ReviveModal';
+import { logModal } from './LogModal';
+import { activityLog } from '../state/activityLog';
 
 declare global {
   interface Window {
@@ -29,8 +31,15 @@ export class HUD {
     this.element = document.getElementById(hudContainerId)!;
     this.tickerElement = document.getElementById(tickerContainerId)!;
 
+    if (this.tickerElement) {
+      this.tickerElement.style.cursor = 'pointer';
+      this.tickerElement.title = 'Clique para abrir o Diário de Aventuras e Resumo Idle';
+      this.tickerElement.addEventListener('click', () => logModal.open());
+    }
+
     this.render();
     gameState.subscribe(() => this.render());
+    activityLog.subscribe(() => this.render());
     battleEngine.subscribe((event) => this.handleCombatEvent(event));
   }
 
@@ -97,6 +106,9 @@ export class HUD {
         <button class="nav-action-btn" id="btn-open-team">
           👥 Time (${aliveCount}/${gameState.party.length})
         </button>
+        <button class="nav-action-btn ${activityLog.unreadCount > 0 ? 'gold' : 'secondary'}" id="btn-open-log" title="Diário de Aventuras e Histórico Idle">
+          📜 Log${activityLog.unreadCount > 0 ? ` <span style="background: #ef4444; color: white; padding: 1px 5px; border-radius: 9999px; font-size: 10px; font-weight: 800; margin-left: 2px;">${activityLog.unreadCount}</span>` : ''}
+        </button>
 
         <!-- Taskbar / Electron Window options -->
         <button class="nav-action-btn secondary" id="btn-toggle-pin" title="Pin window always on top (PiP)">
@@ -134,6 +146,7 @@ export class HUD {
     this.element.querySelector('#btn-open-shop')?.addEventListener('click', () => shopModal.open());
     this.element.querySelector('#btn-open-bag')?.addEventListener('click', () => bagModal.open());
     this.element.querySelector('#btn-open-team')?.addEventListener('click', () => teamModal.open());
+    this.element.querySelector('#btn-open-log')?.addEventListener('click', () => logModal.open());
     this.element.querySelector('#btn-open-revive')?.addEventListener('click', () => reviveModal.open());
     this.element.querySelector('#btn-quick-revive')?.addEventListener('click', () => reviveModal.open());
 
