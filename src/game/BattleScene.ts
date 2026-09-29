@@ -22,6 +22,20 @@ export class BattleScene extends Phaser.Scene {
   private pokeballSprite!: Phaser.GameObjects.Sprite;
   private routeBannerText!: Phaser.GameObjects.Text;
 
+  private biomeBgImage!: Phaser.GameObjects.Image;
+  private currentBiomeRouteId: string = '';
+  private ambientParticles: {
+    gfx: Phaser.GameObjects.Graphics;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    size: number;
+    alpha: number;
+    color: number;
+    type: string;
+  }[] = [];
+
   private unsubscribeState?: () => void;
   private unsubscribeCombat?: () => void;
 
@@ -37,28 +51,34 @@ export class BattleScene extends Phaser.Scene {
   preload(): void {
     // Default placeholder textures
     this.createPlaceholderTextures();
+
+    // Preload all 12 authentic route biomes
+    GAME_ROUTES.forEach(route => {
+      this.load.image(`biome_${route.id}`, route.biomeArenaImage);
+    });
   }
 
   create(): void {
     const width = this.scale.width;
     const height = this.scale.height;
 
-    // Draw background landscape
-    this.drawBackground(width, height);
+    // Biome background landscape
+    this.setupBiomeBackground(width, height);
+    this.setupAmbientParticles();
 
     // Route title banner
     this.routeBannerText = this.add.text(width / 2, 16, '', {
       fontSize: '12px',
-      color: '#94a3b8',
+      color: '#f8fafc',
       fontStyle: 'bold',
       fontFamily: 'monospace, sans-serif',
       stroke: '#0f172a',
       strokeThickness: 3,
     }).setOrigin(0.5, 0.5);
 
-    // Shadows
-    this.playerShadow = this.add.ellipse(this.PLAYER_HOME_X, this.PLAYER_HOME_Y + 36, 68, 20, 0x000000, 0.25);
-    this.wildShadow = this.add.ellipse(this.WILD_HOME_X, this.WILD_HOME_Y + 36, 68, 20, 0x000000, 0.25);
+    // Shadows on authentic platform bases
+    this.playerShadow = this.add.ellipse(this.PLAYER_HOME_X, this.PLAYER_HOME_Y + 36, 76, 22, 0x000000, 0.35);
+    this.wildShadow = this.add.ellipse(this.WILD_HOME_X, this.WILD_HOME_Y + 36, 76, 22, 0x000000, 0.35);
 
     // Sprites
     this.playerSprite = this.add.sprite(this.PLAYER_HOME_X, this.PLAYER_HOME_Y, 'pokemon_placeholder');
@@ -135,24 +155,130 @@ export class BattleScene extends Phaser.Scene {
     });
   }
 
-  private drawBackground(width: number, height: number): void {
-    const bgGraphics = this.add.graphics();
+  private setupBiomeBackground(width: number, height: number): void {
+    const initialRoute = GAME_ROUTES.find(r => r.id === gameState.currentRouteId) || GAME_ROUTES[0];
+    this.currentBiomeRouteId = initialRoute.id;
 
-    // Sky / Atmosphere gradient
-    bgGraphics.fillGradientStyle(0x1e293b, 0x1e293b, 0x0f172a, 0x0f172a, 1);
-    bgGraphics.fillRect(0, 0, width, height);
+    // 1. Biome background texture
+    const textureKey = `biome_${initialRoute.id}`;
+    this.biomeBgImage = this.add.image(width / 2, height / 2, this.textures.exists(textureKey) ? textureKey : 'biome_route-1')
+      .setDisplaySize(width, height)
+      .setDepth(-10);
 
-    // Ground platform / Battle arena
-    bgGraphics.fillStyle(0x15803d, 0.7); // Grass green
-    bgGraphics.fillRoundedRect(40, height - 75, width - 80, 55, 14);
+    // 2. Subtle top/bottom glassmorphism gradient vignette for high HUD contrast
+    const vignette = this.add.graphics().setDepth(-5);
+    // Dark top fade for route banner & HUD readability
+    vignette.fillGradientStyle(0x0b0f19, 0x0b0f19, 0x000000, 0x000000, 0.7, 0.7, 0, 0);
+    vignette.fillRect(0, 0, width, 40);
 
-    bgGraphics.lineStyle(2, 0x22c55e, 0.8);
-    bgGraphics.strokeRoundedRect(40, height - 75, width - 80, 55, 14);
+    // Dark bottom fade for status ticker integration
+    vignette.fillGradientStyle(0x000000, 0x000000, 0x0b0f19, 0x0b0f19, 0, 0, 0.7, 0.7);
+    vignette.fillRect(0, height - 32, width, 32);
+  }
 
-    // Platform ring markings
-    bgGraphics.lineStyle(1, 0x4ade80, 0.35);
-    bgGraphics.strokeEllipse(this.PLAYER_HOME_X, this.PLAYER_HOME_Y + 36, 85, 26);
-    bgGraphics.strokeEllipse(this.WILD_HOME_X, this.WILD_HOME_Y + 36, 85, 26);
+  private updateBiomeBackground(): void {
+    if (this.currentBiomeRouteId === gameState.currentRouteId && this.biomeBgImage) return;
+    this.currentBiomeRouteId = gameState.currentRouteId;
+    const route = GAME_ROUTES.find(r => r.id === this.currentBiomeRouteId) || GAME_ROUTES[0];
+    const textureKey = `biome_${route.id}`;
+
+    if (this.biomeBgImage && this.textures.exists(textureKey)) {
+      this.tweens.add({
+        targets: this.biomeBgImage,
+        alpha: 0.25,
+        duration: 200,
+        yoyo: true,
+        onYoyo: () => {
+          this.biomeBgImage.setTexture(textureKey);
+        }
+      });
+    }
+
+    this.reconfigureParticles(route.particles || 'dust', route.ambientColor);
+  }
+
+  private setupAmbientParticles(): void {
+    const route = GAME_ROUTES.find(r => r.id === gameState.currentRouteId) || GAME_ROUTES[0];
+    this.reconfigureParticles(route.particles || 'dust', route.ambientColor);
+  }
+
+  private reconfigureParticles(type: string, colorHex: string): void {
+    // Clear old particle graphics
+    this.ambientParticles.forEach(p => p.gfx.destroy());
+    this.ambientParticles = [];
+
+    const numParticles = 16;
+    const width = this.scale.width;
+    const height = this.scale.height;
+    const parsedColor = parseInt(colorHex.replace('#', '0x'), 16);
+
+    for (let i = 0; i < numParticles; i++) {
+      const g = this.add.graphics().setDepth(-2);
+      const p = {
+        gfx: g,
+        x: Phaser.Math.Between(20, width - 20),
+        y: Phaser.Math.Between(20, height - 20),
+        vx: 0,
+        vy: 0,
+        size: Phaser.Math.Between(2, 4),
+        alpha: Phaser.Math.FloatBetween(0.25, 0.65),
+        color: parsedColor,
+        type,
+      };
+
+      if (type === 'embers') {
+        p.vy = Phaser.Math.FloatBetween(-0.5, -1.2);
+        p.vx = Phaser.Math.FloatBetween(-0.25, 0.25);
+        p.size = Phaser.Math.Between(2, 3);
+        p.color = Math.random() > 0.4 ? 0xf97316 : 0xfacc15;
+      } else if (type === 'snow') {
+        p.vy = Phaser.Math.FloatBetween(0.4, 0.8);
+        p.vx = Phaser.Math.FloatBetween(-0.3, 0.3);
+        p.size = Phaser.Math.Between(2, 4);
+        p.color = Math.random() > 0.3 ? 0xffffff : 0xbae6fd;
+      } else if (type === 'leaves') {
+        p.vy = Phaser.Math.FloatBetween(0.2, 0.6);
+        p.vx = Phaser.Math.FloatBetween(0.4, 0.9);
+        p.size = Phaser.Math.Between(3, 5);
+        p.color = Math.random() > 0.5 ? 0x22c55e : 0x15803d;
+      } else if (type === 'ghost') {
+        p.vy = Phaser.Math.FloatBetween(-0.25, 0.25);
+        p.vx = Phaser.Math.FloatBetween(-0.3, 0.3);
+        p.size = Phaser.Math.Between(4, 8);
+        p.color = Math.random() > 0.5 ? 0xa855f7 : 0xc084fc;
+      } else { // water / dust
+        p.vy = Phaser.Math.FloatBetween(-0.2, 0.2);
+        p.vx = Phaser.Math.FloatBetween(-0.3, 0.3);
+        p.size = Phaser.Math.Between(2, 3);
+      }
+
+      this.ambientParticles.push(p);
+    }
+  }
+
+  override update(): void {
+    const width = this.scale.width;
+    const height = this.scale.height;
+
+    for (const p of this.ambientParticles) {
+      p.x += p.vx;
+      p.y += p.vy;
+
+      // Wrap around arena borders
+      if (p.x < 0) p.x = width;
+      if (p.x > width) p.x = 0;
+      if (p.y < 0) p.y = height;
+      if (p.y > height) p.y = 0;
+
+      // Draw particle
+      p.gfx.clear();
+      p.gfx.fillStyle(p.color, p.alpha);
+      if (p.type === 'leaves') {
+        p.gfx.fillRoundedRect(p.x, p.y, p.size * 1.5, p.size, 1);
+      } else {
+        p.gfx.fillCircle(p.x, p.y, p.size);
+      }
+    }
   }
 
   private createPlaceholderTextures(): void {
@@ -181,7 +307,8 @@ export class BattleScene extends Phaser.Scene {
     const route = GAME_ROUTES.find(r => r.id === gameState.currentRouteId) || GAME_ROUTES[0];
     const kills = gameState.routeKills[route.id] || 0;
     const req = route.requiredKillsToUnlockNext || 15;
-    this.routeBannerText.setText(`${route.name.toUpperCase()} • DERROTADOS: ${kills}/${req}`);
+    this.routeBannerText.setText(`${route.ambientIcon} ${route.name.toUpperCase()} [${route.biomeName.toUpperCase()}] • DERROTADOS: ${kills}/${req}`);
+    this.updateBiomeBackground();
   }
 
   private refreshPlayerDisplay(): void {

@@ -127,7 +127,25 @@ Quando todos os membros conscientes da equipe caem em combate:
 - Compre e venda itens em pacotes unitários ou em lote (**x10**).
 - Venda Pokémons duplicados da Box ou da equipe por Pokédollars calculados com base no nível e estágio evolutivo.
 
-### 9. Miniplayer no Canto da Tela (Estilo YouTube PiP) & Desktop Electron
+### 9. 🌌 Biomas Autênticos Dinâmicos & Integração com o HUD
+Cada uma das 12 rotas e zonas de caça conta com um campo de batalha próprio extraído e ampliado dos cenários oficiais de combate Pokémon (geração Black/White em alta definição), integrado perfeitamente ao ecossistema do HUD:
+- **Plataformas de Combate em Isometria**: O Pokémon ativo do jogador e o adversário selvagem se posicionam exatamente sobre as bases de combate autênticas com sombras dinâmicas projetadas.
+- **Sistema de Partículas & Física Atmosférica**:
+  - *Vulcão de Cinnabar*: Faíscas e brasas quentes subindo pelo ar.
+  - *Ilhas das Espumas*: Flocos de neve e cristais de gelo caindo suavemente.
+  - *Floresta de Viridian*: Folhas verdes e pólen flutuando com a brisa.
+  - *Torre Pokémon (Lavender)*: Névoa espectral e orbes fantasmagóricos violetas.
+  - *Rios e Mares*: Gotículas e partículas de água reluzentes.
+  - *Montanhas e Cavernas*: Partículas de poeira e feixes de luz dourada.
+- **Bordas & Brilho Neon Reativo no HUD**: O contorno da janela de combate e a pílula de rota no HUD assumem dinamicamente a tonalidade elemental do bioma ativo (Esmeralda na Floresta, Magma no Vulcão, Ciano Glacial no Gelo, Roxo na Torre Fantasma).
+- **Cards com Miniaturas de Bioma no Mapa**: O menu de rotas exibe a miniatura real de cada bioma com ícone ambiental e requisitos de nível.
+
+<div align="center">
+  <img src="./docs/images/biome_grid_showcase.png" alt="Showcase de Biomas Dinâmicos" width="700" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);" />
+  <p><em>Quatro dos doze biomas oficiais adaptados para a arena e iluminados pelo HUD.</em></p>
+</div>
+
+### 10. Miniplayer no Canto da Tela (Estilo YouTube PiP) & Desktop Electron
 - O jogo conta com um modo **Always on Top** nativo no Electron e atalhos dedicados para execução em janela compacta via Chrome ou Edge (`--app=http://localhost:5173 --window-size=440,280`), perfeito para acompanhar o farm no canto da barra de tarefas enquanto estuda ou trabalha.
 
 ---
@@ -136,7 +154,7 @@ Quando todos os membros conscientes da equipe caem em combate:
 
 <div align="center">
 
-| 1. Escolha do Inicial | 2. Arena de Batalha & HUD Pokémon GO |
+| 1. Escolha do Inicial | 2. Arena de Batalha & Bioma Integrado |
 | :---: | :---: |
 | <img src="./docs/images/01_starter_select.png" width="400" /> | <img src="./docs/images/02_battle_arena.png" width="400" /> |
 
@@ -148,7 +166,7 @@ Quando todos os membros conscientes da equipe caem em combate:
 | :---: | :---: |
 | <img src="./docs/images/05_team_modal.png" width="400" /> | <img src="./docs/images/06_bag_modal.png" width="400" /> |
 
-| 7. Mapa de Rotas, Hunts & Drops | 8. Poké Mart & Trocas |
+| 7. Mapa com Miniaturas de Bioma | 8. Poké Mart & Trocas |
 | :---: | :---: |
 | <img src="./docs/images/07_routes_modal.png" width="400" /> | <img src="./docs/images/08_shop_modal.png" width="400" /> |
 
@@ -160,22 +178,22 @@ Quando todos os membros conscientes da equipe caem em combate:
 
 ---
 
-## 🗺️ Tabela de Rotas, Hunts e Drops
+## 🗺️ Tabela de Rotas, Hunts e Biomas
 
-| ID | Nome da Rota / Hunt | Inimigos | Nv. Recomendado | Drops Principais | Tier |
-| :--- | :--- | :--- | :---: | :--- | :---: |
-| **route-1** | Rota 1 (Arredores de Pallet) | Pidgey, Rattata, Caterpie, Weedle | Nv. 2 | Poké Ball (1-2x), Potion (1-2x) | `Iniciante` |
-| **route-2** | Rota 2 & Cidade de Viridian | Pidgey, Rattata, Nidoran, Pikachu | Nv. 5 | Poké Ball (1-2x), Potion (1-2x) | `Iniciante` |
-| **viridian-forest** | Floresta de Viridian | Caterpie, Metapod, Weedle, Kakuna, Pikachu | Nv. 6 | Poké Ball (1-3x), Potion (1-2x) | `Iniciante` |
-| **route-3** | Rota 3 & Entrada do Mt. Moon | Spearow, Zubat, Mankey, Geodude | Nv. 9 | Poké Ball (1-3x), Potion (1-2x) | `Iniciante` |
-| **mt-moon** | Caverna do Mt. Moon | Zubat, Geodude, Paras, Clefairy, Onix | Nv. 12 | Great Ball (1-2x), Super Potion (1-2x) | `Intermediário` |
-| **cerulean-cape** | Cabo de Cerulean (Rota 24/25) | Oddish, Bellsprout, Abra, Pidgeotto, Psyduck | Nv. 16 | Great Ball (1-2x), Super Potion (1-2x) | `Intermediário` |
-| **vermilion-seaside** | Porto de Vermilion (Rota 11) | Drowzee, Meowth, Magnemite, Diglett, Voltorb | Nv. 20 | Great Ball (1-3x), Super Potion (1-2x) | `Intermediário` |
-| **rock-tunnel** | Túnel de Rocha (Rock Tunnel) | Machop, Geodude, Graveler, Onix, Zubat | Nv. 25 | Ultra Ball (1-2x), Hyper Potion (1-2x) | `Avançado` |
-| **pokemon-tower** | Torre Pokémon de Lavender | Gastly, Haunter, Cubone, Drowzee | Nv. 30 | Ultra Ball (1-2x), Hyper Potion (1-2x) | `Avançado` |
-| **safari-zone** | Zona do Safari de Fuchsia | Rhyhorn, Scyther, Pinsir, Tauros, Chansey, Dratini | Nv. 35 | Ultra Ball (1-3x), Hyper Potion (1-2x) | `Avançado` |
-| **seafoam-islands** | Ilhas das Ilhas das Espumas | Seel, Dewgong, Shellder, Golduck, Articuno | Nv. 42 | Ultra Ball (2-4x), Max Potion (1-2x) | `Lendário` |
-| **cinnabar-volcano** | Mansão & Vulcão de Cinnabar | Ponyta, Rapidash, Magmar, Growlithe, Koffing | Nv. 48 | Ultra Ball (2-4x), Max Potion, Full Restore | `Lendário` |
+| ID | Nome da Rota / Hunt | Bioma & Clima | Inimigos | Nv. Rec. | Drops Principais | Tier |
+| :--- | :--- | :--- | :--- | :---: | :--- | :---: |
+| **route-1** | Rota 1 (Arredores de Pallet) | 🌾 Planície Verdejante | Pidgey, Rattata, Caterpie, Weedle | Nv. 2 | Poké Ball (1-2x), Potion (1-2x) | `Iniciante` |
+| **route-2** | Rota 2 & Cidade de Viridian | 🌱 Prados de Viridian | Pidgey, Rattata, Nidoran, Pikachu | Nv. 5 | Poké Ball (1-2x), Potion (1-2x) | `Iniciante` |
+| **viridian-forest** | Floresta de Viridian | 🌲 Bosque Fechado | Caterpie, Metapod, Weedle, Kakuna, Pikachu | Nv. 6 | Poké Ball (1-3x), Potion (1-2x) | `Iniciante` |
+| **route-3** | Rota 3 & Caminho de Pewter | ⛰️ Cordilheira Rochosa | Spearow, Zubat, Mankey, Geodude | Nv. 9 | Poké Ball (1-3x), Potion (1-2x) | `Iniciante` |
+| **mt-moon** | Monte Lua (Mt. Moon) | 🌙 Caverna Lunar | Zubat, Geodude, Paras, Clefairy, Onix | Nv. 11 | Great Ball (1-2x), Super Potion (1-2x) | `Intermediário` |
+| **route-4** | Rota 4 & Rio de Cerulean | 💧 Margem Fluvial | Ekans, Oddish, Bellsprout, Poliwag, Psyduck | Nv. 14 | Great Ball (1-2x), Super Potion (1-2x) | `Intermediário` |
+| **vermilion-route** | Rota 11 (Litoral de Vermilion) | 🏖️ Praia Costeira | Drowzee, Meowth, Magnemite, Diglett | Nv. 18 | Great Ball (1-3x), Super Potion (1-2x) | `Intermediário` |
+| **rock-tunnel** | Túnel de Pedra (Rock Tunnel) | ⛏️ Túnel Subterrâneo | Machop, Geodude, Graveler, Onix | Nv. 22 | Ultra Ball (1-2x), Hyper Potion (1-2x) | `Avançado` |
+| **pokemon-tower** | Torre Pokémon (Lavender Town) | 👻 Cemitério Noturno | Gastly, Haunter, Cubone, Marowak | Nv. 25 | Ultra Ball (1-2x), Hyper Potion (1-2x) | `Avançado` |
+| **safari-zone** | Zona do Safari | 🦁 Savana Selvagem | Scyther, Pinsir, Tauros, Dratini, Chansey | Nv. 30 | Ultra Ball (1-3x), Hyper Potion (1-2x) | `Avançado` |
+| **seafoam-islands** | Ilhas das Espumas (Seafoam) | ❄️ Geleiras e Caverna de Gelo | Seel, Dewgong, Shellder, Slowpoke, Staryu | Nv. 35 | Ultra Ball (2-4x), Max Potion (1-2x) | `Lendário` |
+| **cinnabar-volcano** | Vulcão de Cinnabar | 🌋 Cratera Magmática | Ponyta, Growlithe, Magmar, Koffing, Weezing | Nv. 40 | Ultra Ball (2-4x), Max Potion, Full Restore | `Lendário` |
 
 ---
 

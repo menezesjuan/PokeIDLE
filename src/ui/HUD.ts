@@ -217,12 +217,20 @@ export class HUD {
     const kills = gameState.routeKills[currentRoute.id] || 0;
     const reqKills = currentRoute.requiredKillsToUnlockNext || 15;
 
+    // Apply atmospheric biome glow to battle container
+    const phaserContainer = document.getElementById('phaser-container');
+    if (phaserContainer) {
+      phaserContainer.style.borderColor = `${currentRoute.ambientColor}66`;
+      phaserContainer.style.boxShadow = `0 10px 30px rgba(0,0,0,0.5), 0 0 25px ${currentRoute.ambientColor}25`;
+    }
+
     this.topElement.innerHTML = `
       <div class="hud-top-left">
-        <!-- Hunt Route Pill -->
-        <button class="glass-pill" id="btn-open-routes" title="${isFrontier ? 'Última Hunt (Auto-Avanço Ativo)' : 'Hunt Anterior (Treino Manual)'}">
-          <span>${isFrontier ? '⚡' : '🌾'}</span>
+        <!-- Hunt Route Pill with Biome styling -->
+        <button class="glass-pill" id="btn-open-routes" style="border-color: ${currentRoute.ambientColor}80; box-shadow: 0 0 12px ${currentRoute.ambientColor}30;" title="${isFrontier ? 'Última Hunt (Auto-Avanço Ativo)' : 'Hunt Anterior (Treino Manual)'}">
+          <span>${currentRoute.ambientIcon}</span>
           <span>${currentRoute.name.split('(')[0]}</span>
+          <span style="font-size: 10px; color: ${currentRoute.ambientColor}; font-weight: 700; background: ${currentRoute.ambientColor}20; padding: 1px 6px; border-radius: 9999px;">${currentRoute.biomeName}</span>
           <span style="font-size: 10px; color: #94a3b8; font-family: monospace;">(${kills}/${reqKills})</span>
         </button>
       </div>

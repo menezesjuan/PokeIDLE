@@ -84,11 +84,22 @@ export class RoutesModal {
 
               return `
                 <div class="item-card" style="${isCurrent ? 'border-color: #3b82f6; background: rgba(59, 130, 246, 0.12);' : (!isUnlocked ? 'opacity: 0.6;' : '')}">
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div style="display: flex; gap: 14px; align-items: center;">
+                    <!-- Biome authentic preview thumbnail -->
+                    <div style="width: 86px; height: 56px; border-radius: 8px; overflow: hidden; position: relative; flex-shrink: 0; border: 1.5px solid ${route.ambientColor}60; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+                      <img src="${route.biomeThumbImage}" style="width: 100%; height: 100%; object-fit: cover;" />
+                      <span style="position: absolute; bottom: 2px; right: 2px; font-size: 11px; background: rgba(0,0,0,0.65); border-radius: 4px; padding: 1px 4px; border: 1px solid rgba(255,255,255,0.2);">
+                        ${route.ambientIcon}
+                      </span>
+                    </div>
+
                     <div style="flex: 1;">
                       <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                         <span style="font-weight: 700; font-size: 14px; color: ${isCurrent ? '#60a5fa' : '#f9fafb'};">
                           ${route.name}
+                        </span>
+                        <span style="font-size: 10px; color: ${route.ambientColor}; background: ${route.ambientColor}20; padding: 1px 6px; border-radius: 9999px; font-weight: 600; border: 1px solid ${route.ambientColor}40;">
+                          ${route.biomeName}
                         </span>
                         ${isCurrent ? '<span style="font-size: 9px; background: #2563eb; color: white; padding: 2px 6px; border-radius: 4px; font-weight: 700;">CAÇANDO AQUI</span>' : ''}
                         ${isFrontierRoute ? '<span style="font-size: 9px; background: #059669; color: white; padding: 2px 6px; border-radius: 4px; font-weight: 700;">ÚLTIMA HUNT</span>' : ''}

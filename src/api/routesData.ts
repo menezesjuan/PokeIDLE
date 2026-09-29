@@ -9,7 +9,13 @@ export interface GameRoute {
     speciesIdOrName: string | number;
     weight: number; // probability weight
   }[];
-  backgroundTheme: 'grass' | 'forest' | 'cave' | 'water' | 'volcano' | 'electric';
+  backgroundTheme: 'grass' | 'forest' | 'cave' | 'water' | 'volcano' | 'electric' | 'ice' | 'ghost' | 'mountain';
+  biomeName: string;
+  biomeArenaImage: string;
+  biomeThumbImage: string;
+  ambientColor: string;
+  ambientIcon: string;
+  particles?: 'leaves' | 'embers' | 'snow' | 'ghost' | 'water' | 'dust';
 }
 
 export const GAME_ROUTES: GameRoute[] = [
@@ -21,6 +27,12 @@ export const GAME_ROUTES: GameRoute[] = [
     unlockedByDefault: true,
     requiredKillsToUnlockNext: 10,
     backgroundTheme: 'grass',
+    biomeName: 'Planície Verdejante',
+    biomeArenaImage: '/biomes/arena/route-1.png',
+    biomeThumbImage: '/biomes/thumb/route-1.png',
+    ambientColor: '#22c55e',
+    ambientIcon: '🌾',
+    particles: 'dust',
     encounterPool: [
       { speciesIdOrName: 'pidgey', weight: 40 },
       { speciesIdOrName: 'rattata', weight: 40 },
@@ -35,6 +47,12 @@ export const GAME_ROUTES: GameRoute[] = [
     maxLevel: 8,
     requiredKillsToUnlockNext: 15,
     backgroundTheme: 'grass',
+    biomeName: 'Prados de Viridian',
+    biomeArenaImage: '/biomes/arena/route-2.png',
+    biomeThumbImage: '/biomes/thumb/route-2.png',
+    ambientColor: '#4ade80',
+    ambientIcon: '🌱',
+    particles: 'leaves',
     encounterPool: [
       { speciesIdOrName: 'pidgey', weight: 30 },
       { speciesIdOrName: 'rattata', weight: 25 },
@@ -50,6 +68,12 @@ export const GAME_ROUTES: GameRoute[] = [
     maxLevel: 10,
     requiredKillsToUnlockNext: 20,
     backgroundTheme: 'forest',
+    biomeName: 'Bosque Fechado de Viridian',
+    biomeArenaImage: '/biomes/arena/viridian-forest.png',
+    biomeThumbImage: '/biomes/thumb/viridian-forest.png',
+    ambientColor: '#15803d',
+    ambientIcon: '🌲',
+    particles: 'leaves',
     encounterPool: [
       { speciesIdOrName: 'caterpie', weight: 25 },
       { speciesIdOrName: 'metapod', weight: 20 },
@@ -64,7 +88,13 @@ export const GAME_ROUTES: GameRoute[] = [
     minLevel: 9,
     maxLevel: 13,
     requiredKillsToUnlockNext: 20,
-    backgroundTheme: 'grass',
+    backgroundTheme: 'mountain',
+    biomeName: 'Cordilheira de Pewter',
+    biomeArenaImage: '/biomes/arena/route-3.png',
+    biomeThumbImage: '/biomes/thumb/route-3.png',
+    ambientColor: '#d97706',
+    ambientIcon: '⛰️',
+    particles: 'dust',
     encounterPool: [
       { speciesIdOrName: 'spearow', weight: 35 },
       { speciesIdOrName: 'jigglypuff', weight: 20 },
@@ -79,6 +109,12 @@ export const GAME_ROUTES: GameRoute[] = [
     maxLevel: 16,
     requiredKillsToUnlockNext: 25,
     backgroundTheme: 'cave',
+    biomeName: 'Caverna Lunar Profunda',
+    biomeArenaImage: '/biomes/arena/mt-moon.png',
+    biomeThumbImage: '/biomes/thumb/mt-moon.png',
+    ambientColor: '#8b5cf6',
+    ambientIcon: '🌙',
+    particles: 'dust',
     encounterPool: [
       { speciesIdOrName: 'zubat', weight: 50 },
       { speciesIdOrName: 'geodude', weight: 30 },
@@ -93,6 +129,12 @@ export const GAME_ROUTES: GameRoute[] = [
     maxLevel: 20,
     requiredKillsToUnlockNext: 25,
     backgroundTheme: 'water',
+    biomeName: 'Margem do Rio Cerulean',
+    biomeArenaImage: '/biomes/arena/route-4.png',
+    biomeThumbImage: '/biomes/thumb/route-4.png',
+    ambientColor: '#0ea5e9',
+    ambientIcon: '💧',
+    particles: 'water',
     encounterPool: [
       { speciesIdOrName: 'ekans', weight: 25 },
       { speciesIdOrName: 'oddish', weight: 25 },
@@ -107,7 +149,13 @@ export const GAME_ROUTES: GameRoute[] = [
     minLevel: 18,
     maxLevel: 24,
     requiredKillsToUnlockNext: 30,
-    backgroundTheme: 'grass',
+    backgroundTheme: 'water',
+    biomeName: 'Praia Costeira de Vermilion',
+    biomeArenaImage: '/biomes/arena/vermilion-route.png',
+    biomeThumbImage: '/biomes/thumb/vermilion-route.png',
+    ambientColor: '#f59e0b',
+    ambientIcon: '🏖️',
+    particles: 'water',
     encounterPool: [
       { speciesIdOrName: 'drowzee', weight: 30 },
       { speciesIdOrName: 'meowth', weight: 30 },
@@ -122,6 +170,12 @@ export const GAME_ROUTES: GameRoute[] = [
     maxLevel: 28,
     requiredKillsToUnlockNext: 35,
     backgroundTheme: 'cave',
+    biomeName: 'Túnel Obscuro de Rocha',
+    biomeArenaImage: '/biomes/arena/rock-tunnel.png',
+    biomeThumbImage: '/biomes/thumb/rock-tunnel.png',
+    ambientColor: '#64748b',
+    ambientIcon: '⛏️',
+    particles: 'dust',
     encounterPool: [
       { speciesIdOrName: 'machop', weight: 30 },
       { speciesIdOrName: 'geodude', weight: 30 },
@@ -135,7 +189,13 @@ export const GAME_ROUTES: GameRoute[] = [
     minLevel: 25,
     maxLevel: 32,
     requiredKillsToUnlockNext: 40,
-    backgroundTheme: 'cave',
+    backgroundTheme: 'ghost',
+    biomeName: 'Cemitério Noturno de Lavender',
+    biomeArenaImage: '/biomes/arena/pokemon-tower.png',
+    biomeThumbImage: '/biomes/thumb/pokemon-tower.png',
+    ambientColor: '#a855f7',
+    ambientIcon: '👻',
+    particles: 'ghost',
     encounterPool: [
       { speciesIdOrName: 'gastly', weight: 50 },
       { speciesIdOrName: 'haunter', weight: 20 },
@@ -150,6 +210,12 @@ export const GAME_ROUTES: GameRoute[] = [
     maxLevel: 38,
     requiredKillsToUnlockNext: 45,
     backgroundTheme: 'forest',
+    biomeName: 'Savana Selvagem do Safari',
+    biomeArenaImage: '/biomes/arena/safari-zone.png',
+    biomeThumbImage: '/biomes/thumb/safari-zone.png',
+    ambientColor: '#eab308',
+    ambientIcon: '🦁',
+    particles: 'leaves',
     encounterPool: [
       { speciesIdOrName: 'scyther', weight: 15 },
       { speciesIdOrName: 'pinsir', weight: 15 },
@@ -165,7 +231,13 @@ export const GAME_ROUTES: GameRoute[] = [
     minLevel: 35,
     maxLevel: 44,
     requiredKillsToUnlockNext: 50,
-    backgroundTheme: 'water',
+    backgroundTheme: 'ice',
+    biomeName: 'Geleiras das Ilhas Espuma',
+    biomeArenaImage: '/biomes/arena/seafoam-islands.png',
+    biomeThumbImage: '/biomes/thumb/seafoam-islands.png',
+    ambientColor: '#38bdf8',
+    ambientIcon: '❄️',
+    particles: 'snow',
     encounterPool: [
       { speciesIdOrName: 'seel', weight: 30 },
       { speciesIdOrName: 'dewgong', weight: 15 },
@@ -181,6 +253,12 @@ export const GAME_ROUTES: GameRoute[] = [
     maxLevel: 50,
     requiredKillsToUnlockNext: 55,
     backgroundTheme: 'volcano',
+    biomeName: 'Cratera Magmática de Cinnabar',
+    biomeArenaImage: '/biomes/arena/cinnabar-volcano.png',
+    biomeThumbImage: '/biomes/thumb/cinnabar-volcano.png',
+    ambientColor: '#ef4444',
+    ambientIcon: '🌋',
+    particles: 'embers',
     encounterPool: [
       { speciesIdOrName: 'ponyta', weight: 30 },
       { speciesIdOrName: 'growlithe', weight: 25 },
