@@ -316,6 +316,23 @@ export class BattleScene extends Phaser.Scene {
       case 'potion-used':
         this.showFloatingText(this.PLAYER_HOME_X, this.PLAYER_HOME_Y - 35, '+HEAL', '#4ade80', false);
         break;
+
+      case 'item-drops':
+        if (event.drops && event.drops.length > 0) {
+          event.drops.forEach((drop, idx) => {
+            this.time.delayedCall(idx * 220, () => {
+              const color = drop.category === 'ball' ? (drop.itemId === 'master-ball' ? '#e879f9' : '#38bdf8') : '#4ade80';
+              this.showFloatingText(
+                this.WILD_HOME_X + (idx === 0 ? -20 : 20),
+                this.WILD_HOME_Y - 15 - (idx * 16),
+                `+${drop.count} ${drop.name}`,
+                color,
+                drop.tier >= 3 || drop.itemId === 'master-ball'
+              );
+            });
+          });
+        }
+        break;
     }
   }
 

@@ -2,6 +2,7 @@ import { pokeApi, WildPokemon, PokemonSpeciesInfo, calculateStats } from '../api
 import { gameState } from './gameState';
 import { GAME_ROUTES, GameRoute } from '../api/routesData';
 import { GAME_ITEMS } from '../api/itemsData';
+import { generateHuntDrops, ItemDrop } from '../api/dropsData';
 
 export type CombatEventType = 
   | 'spawn'
@@ -15,7 +16,8 @@ export type CombatEventType =
   | 'route-advanced'
   | 'potion-used'
   | 'level-up'
-  | 'evolution';
+  | 'evolution'
+  | 'item-drops';
 
 export interface CombatEvent {
   type: CombatEventType;
@@ -25,6 +27,7 @@ export interface CombatEvent {
   wildPokemon?: WildPokemon | null;
   message?: string;
   ballId?: string;
+  drops?: ItemDrop[];
 }
 
 export type CombatListener = (event: CombatEvent) => void;
@@ -325,6 +328,20 @@ class BattleEngine {
         message: `What? ${player.displayName} evolved into ${player.displayName}!`,
       });
     }
+
+    // --- Hunt Drops: Poke Balls and Potions scaled with hunt difficulty ---
+    const currentRoute = GAME_ROUTES.find(r => r.id === gameState.currentRouteId) || GAME_ROUTES[0];
+    const drops = generateHuntDrops(currentRoute, wild);
+    for (const drop of drops) {
+      gameState.addItem(drop.itemId, drop.count);
+    }
+
+    this.emit({
+      type: 'item-drops',
+      drops,
+      wildPokemon: wild,
+      message: `🎁 Drops: ${drops.map(d => `+${d.count} ${d.name}`).join(', ')}`,
+    });
 
     // Record route kill and check level-based progression
     const progress = gameState.recordRouteKill(gameState.currentRouteId);

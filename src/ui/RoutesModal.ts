@@ -1,6 +1,7 @@
 import { gameState } from '../state/gameState';
 import { GAME_ROUTES } from '../api/routesData';
 import { battleEngine } from '../state/battleEngine';
+import { getRouteDropsPreview } from '../api/dropsData';
 
 export class RoutesModal {
   private container: HTMLElement | null = null;
@@ -78,6 +79,8 @@ export class RoutesModal {
               const reqKills = route.requiredKillsToUnlockNext || 15;
               const levelMet = highestPartyLevel >= route.minLevel;
 
+              const dropsPreview = getRouteDropsPreview(route);
+
               return `
                 <div class="item-card" style="${isCurrent ? 'border-color: #3b82f6; background: rgba(59, 130, 246, 0.12);' : (!isUnlocked ? 'opacity: 0.6;' : '')}">
                   <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -88,6 +91,7 @@ export class RoutesModal {
                         </span>
                         ${isCurrent ? '<span style="font-size: 9px; background: #2563eb; color: white; padding: 2px 6px; border-radius: 4px; font-weight: 700;">CAÇANDO AQUI</span>' : ''}
                         ${isFrontierRoute ? '<span style="font-size: 9px; background: #059669; color: white; padding: 2px 6px; border-radius: 4px; font-weight: 700;">ÚLTIMA HUNT</span>' : ''}
+                        <span style="font-size: 9px; background: #475569; color: #e2e8f0; padding: 2px 6px; border-radius: 4px;">${dropsPreview.tierName}</span>
                       </div>
 
                       <div style="display: flex; gap: 14px; font-size: 11px; color: #94a3b8; margin-top: 4px;">
@@ -100,6 +104,12 @@ export class RoutesModal {
 
                       <div style="font-size: 11px; color: #cbd5e1; margin-top: 4px;">
                         Selvagens: ${route.encounterPool.map(e => `<span style="background: rgba(0,0,0,0.3); padding: 1px 6px; border-radius: 4px; margin-right: 4px;">${String(e.speciesIdOrName).toUpperCase()}</span>`).join(' ')}
+                      </div>
+
+                      <div style="font-size: 11px; margin-top: 5px; display: flex; gap: 8px; flex-wrap: wrap; background: rgba(0,0,0,0.25); padding: 4px 8px; border-radius: 4px; border-left: 3px solid #facc15;">
+                        <span style="color: #facc15; font-weight: 700;">🎁 Drops da Hunt:</span>
+                        <span style="color: #38bdf8;">🔴 ${dropsPreview.balls}</span>
+                        <span style="color: #4ade80;">🧪 ${dropsPreview.potions}</span>
                       </div>
                     </div>
 

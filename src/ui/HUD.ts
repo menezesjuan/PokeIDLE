@@ -234,7 +234,9 @@ export class HUD {
   }
 
   private handleCombatEvent(event: CombatEvent): void {
-    if (event.message) {
+    if (event.type === 'item-drops' && event.drops) {
+      this.tickerElement.innerHTML = `<span style="color: #facc15; font-weight: 700;">🎁 [DROPS]</span> ${event.drops.map(d => `<strong style="color: ${d.category === 'ball' ? '#38bdf8' : '#4ade80'};">+${d.count}x ${d.name}</strong>`).join(' &nbsp;•&nbsp; ')}`;
+    } else if (event.message) {
       this.tickerElement.innerText = `[LOG] ${event.message}`;
     } else if (event.type === 'bump-attack' && event.attacker === 'player') {
       const p = gameState.activePokemon;
