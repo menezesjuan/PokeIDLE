@@ -11,6 +11,8 @@ export type CombatEventType =
   | 'catch-fail'
   | 'pokemon-faint'
   | 'player-faint'
+  | 'team-fainted'
+  | 'route-advanced'
   | 'potion-used'
   | 'level-up'
   | 'evolution';
@@ -324,8 +326,14 @@ class BattleEngine {
       });
     }
 
-    // Record route kill
-    gameState.recordRouteKill(gameState.currentRouteId);
+    // Record route kill and check level-based progression
+    const progress = gameState.recordRouteKill(gameState.currentRouteId);
+    if (progress.advancedNext && progress.nextRoute) {
+      this.emit({
+        type: 'route-advanced',
+        message: `🚀 Nível alcançado! Sua equipe avançou automaticamente para ${progress.nextRoute.name}!`,
+      });
+    }
 
     // Wait before next wild spawn
     setTimeout(() => {
@@ -349,33 +357,36 @@ class BattleEngine {
   }
 
   private handlePartyFainted(): void {
-    // Find next conscious pokemon in party
+    // 1. Find next conscious pokemon in party
     const nextIndex = gameState.party.findIndex(p => p.currentHp > 0);
     if (nextIndex > 0) {
       gameState.setActivePokemon(nextIndex);
       this.emit({
         type: 'player-faint',
-        message: `Switched to ${gameState.activePokemon?.displayName}!`,
+        message: `Active fainted! Switched to ${gameState.activePokemon?.displayName}!`,
       });
       setTimeout(() => this.executeBumpTurn(), 800);
       return;
     }
 
-    // All fainted: Pokemon Center Rest (cooldown & full heal)
-    this.emit({
-      type: 'player-faint',
-      message: 'All Pokémon fainted! Resting at the Pokémon Center...',
-    });
+    // 2. All fainted: Stop battle and require manual revive or team swap!
+    this.isBattling = false;
+    if (this.combatTimer) {
+      clearTimeout(this.combatTimer);
+      this.combatTimer = null;
+    }
 
-    setTimeout(() => {
-      for (const p of gameState.party) {
-        p.currentHp = p.maxHp;
-      }
-      gameState.notify();
-      if (gameState.settings.autoHunt && this.isBattling) {
-        this.spawnNextEncounter();
-      }
-    }, 3500);
+    this.emit({
+      type: 'team-fainted',
+      message: '💀 Toda sua equipe foi derrotada! Escolha quem reviver por ₽ 10 ou troque seus Pokémons na equipe.',
+    });
+  }
+
+  public resumeCombat(): void {
+    if (!this.isBattling && gameState.hasConsciousPartyMember) {
+      this.isBattling = true;
+      this.spawnNextEncounter();
+    }
   }
 }
 

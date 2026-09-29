@@ -6,6 +6,7 @@ import { bagModal } from './BagModal';
 import { shopModal } from './ShopModal';
 import { teamModal } from './TeamModal';
 import { routesModal } from './RoutesModal';
+import { reviveModal } from './ReviveModal';
 
 declare global {
   interface Window {
@@ -38,6 +39,10 @@ export class HUD {
     const currentRoute = GAME_ROUTES.find(r => r.id === gameState.currentRouteId) || GAME_ROUTES[0];
     const preferredBallItem = GAME_ITEMS[s.preferredBall] || GAME_ITEMS['poke-ball'];
     const preferredPotionItem = GAME_ITEMS[s.preferredPotion] || GAME_ITEMS['potion'];
+    const isFrontier = gameState.isAtFrontierRoute();
+    const hasConscious = gameState.hasConsciousPartyMember;
+    const aliveCount = gameState.party.filter(p => p.currentHp > 0).length;
+    const faintedCount = gameState.party.length - aliveCount;
 
     this.element.innerHTML = `
       <div class="hud-left">
@@ -46,31 +51,43 @@ export class HUD {
           <span>${gameState.money.toLocaleString()}</span>
         </div>
 
-        <button class="nav-action-btn secondary" id="btn-open-routes" title="Change Route">
-          🗺️ ${currentRoute.name.split('(')[0]}
+        <button class="nav-action-btn secondary" id="btn-open-routes" title="${isFrontier ? 'Última Hunt (Auto-Avanço Ativo)' : 'Hunt Anterior (Treino Manual)'}">
+          ${isFrontier ? '⚡' : '🌾'} ${currentRoute.name.split('(')[0]}
         </button>
       </div>
 
       <div class="hud-center">
-        <!-- Auto-Hunt Toggle -->
-        <button class="idle-toggle-btn ${s.autoHunt ? 'active' : ''}" id="toggle-hunt" title="Toggle automatic hunting of wild Pokemon">
-          ⚔️ Auto-Hunt: <strong>${s.autoHunt ? 'ON' : 'OFF'}</strong>
-        </button>
+        ${!hasConscious ? `
+          <button class="idle-toggle-btn active red" id="btn-open-revive" style="font-weight: 700; padding: 6px 14px;">
+            💀 Equipe Derrotada! [Reviver / Trocar Time (₽ 10)]
+          </button>
+        ` : `
+          <!-- Auto-Hunt Toggle -->
+          <button class="idle-toggle-btn ${s.autoHunt ? 'active' : ''}" id="toggle-hunt" title="Toggle automatic hunting of wild Pokemon">
+            ⚔️ Auto-Hunt: <strong>${s.autoHunt ? 'ON' : 'OFF'}</strong>
+          </button>
 
-        <!-- Auto-Catch Toggle -->
-        <button class="idle-toggle-btn ${s.autoCatch ? 'active' : ''}" id="toggle-catch" title="Toggle automatic catching using preferred Pokeball">
-          <img src="${preferredBallItem.spriteUrl}" style="width: 16px; height: 16px; vertical-align: middle;" />
-          Auto-Catch: <strong>${s.autoCatch ? 'ON' : 'OFF'}</strong>
-        </button>
+          <!-- Auto-Catch Toggle -->
+          <button class="idle-toggle-btn ${s.autoCatch ? 'active' : ''}" id="toggle-catch" title="Toggle automatic catching using preferred Pokeball">
+            <img src="${preferredBallItem.spriteUrl}" style="width: 16px; height: 16px; vertical-align: middle;" />
+            Auto-Catch: <strong>${s.autoCatch ? 'ON' : 'OFF'}</strong>
+          </button>
 
-        <!-- Auto-Heal Toggle -->
-        <button class="idle-toggle-btn ${s.autoPotion ? 'active' : ''}" id="toggle-potion" title="Toggle automatic healing when HP is low">
-          <img src="${preferredPotionItem.spriteUrl}" style="width: 16px; height: 16px; vertical-align: middle;" />
-          Auto-Heal &le;${s.autoPotionThreshold}%: <strong>${s.autoPotion ? 'ON' : 'OFF'}</strong>
-        </button>
+          <!-- Auto-Heal Toggle -->
+          <button class="idle-toggle-btn ${s.autoPotion ? 'active' : ''}" id="toggle-potion" title="Toggle automatic healing when HP is low">
+            <img src="${preferredPotionItem.spriteUrl}" style="width: 16px; height: 16px; vertical-align: middle;" />
+            Auto-Heal &le;${s.autoPotionThreshold}%: <strong>${s.autoPotion ? 'ON' : 'OFF'}</strong>
+          </button>
+        `}
       </div>
 
       <div class="hud-right">
+        ${faintedCount > 0 ? `
+          <button class="nav-action-btn red" id="btn-quick-revive" title="Reviver Pokémons desmaiados">
+            💀 Reviver (${faintedCount})
+          </button>
+        ` : ''}
+
         <button class="nav-action-btn warning" id="btn-open-shop">
           🛒 Shop
         </button>
@@ -78,11 +95,11 @@ export class HUD {
           🎒 Bag (${Object.values(gameState.inventory).reduce((a, b) => a + b, 0)})
         </button>
         <button class="nav-action-btn" id="btn-open-team">
-          👥 Team (${gameState.party.length}/6)
+          👥 Time (${aliveCount}/${gameState.party.length})
         </button>
 
         <!-- Taskbar / Electron Window options -->
-        <button class="nav-action-btn secondary" id="btn-toggle-pin" title="Pin window always on top">
+        <button class="nav-action-btn secondary" id="btn-toggle-pin" title="Pin window always on top (PiP)">
           ${this.isPinned ? '📌 Pinned' : '📍 Pin'}
         </button>
         <button class="nav-action-btn secondary" id="btn-toggle-compact" title="Toggle compact taskbar strip mode">
@@ -117,6 +134,8 @@ export class HUD {
     this.element.querySelector('#btn-open-shop')?.addEventListener('click', () => shopModal.open());
     this.element.querySelector('#btn-open-bag')?.addEventListener('click', () => bagModal.open());
     this.element.querySelector('#btn-open-team')?.addEventListener('click', () => teamModal.open());
+    this.element.querySelector('#btn-open-revive')?.addEventListener('click', () => reviveModal.open());
+    this.element.querySelector('#btn-quick-revive')?.addEventListener('click', () => reviveModal.open());
 
     // Window Pinning & PiP Miniplayer
     this.element.querySelector('#btn-toggle-pin')?.addEventListener('click', async () => {
@@ -223,6 +242,13 @@ export class HUD {
       if (p && w) {
         this.tickerElement.innerText = `[BATTLE] ${p.displayName} bumped wild ${w.displayName} for ${event.damage} dmg!`;
       }
+    }
+
+    if (event.type === 'team-fainted') {
+      reviveModal.open();
+      this.render();
+    } else if (event.type === 'route-advanced') {
+      this.render();
     }
   }
 }

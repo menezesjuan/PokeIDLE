@@ -98,11 +98,54 @@ export class TeamModal {
         }
       });
     });
+
+    // Revive actions
+    this.container.querySelectorAll('[data-revive-poke]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const uid = (e.currentTarget as HTMLElement).getAttribute('data-revive-poke')!;
+        if (gameState.revivePokemon(uid)) {
+          this.render();
+        } else {
+          alert('Not enough PokéDollars! Reviving requires ₽ 10.');
+        }
+      });
+    });
+
+    this.container.querySelector('#btn-team-revive-all')?.addEventListener('click', () => {
+      const res = gameState.reviveAllParty();
+      if (res.success) {
+        this.render();
+      } else {
+        alert('Not enough PokéDollars to revive all fainted Pokémon!');
+      }
+    });
+
+    this.container.querySelectorAll('[data-swap-box]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const partyIdx = parseInt((e.currentTarget as HTMLElement).getAttribute('data-swap-box')!, 10);
+        this.promptSwapWithBox(partyIdx);
+      });
+    });
   }
 
   private renderParty(): string {
     const party = gameState.party;
+    const faintedCount = gameState.faintedPartyMembers.length;
+    const totalCost = faintedCount * 10;
+
     return `
+      ${faintedCount > 0 ? `
+        <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <strong style="color: #f87171;">💀 ${faintedCount} Pokémon fainted in your team!</strong>
+            <div style="font-size: 11px; color: #fca5a5;">Revive individually for ₽ 10 each or revive all:</div>
+          </div>
+          <button class="btn-small gold" id="btn-team-revive-all" ${gameState.money < totalCost ? 'disabled' : ''} style="padding: 6px 12px;">
+            ✨ Revive All (${faintedCount} for ₽ ${totalCost})
+          </button>
+        </div>
+      ` : ''}
+
       <div style="display: flex; flex-direction: column; gap: 12px;">
         ${party.map((p, idx) => this.renderPokemonDetailCard(p, idx, false)).join('')}
       </div>
@@ -166,16 +209,19 @@ export class TeamModal {
     const expRatio = Math.min(1, Math.max(0, currentExpInLevel / Math.max(1, p.expToNextLevel)));
     const expPercent = Math.round(expRatio * 100);
 
+    const isFainted = p.currentHp <= 0;
+
     return `
-      <div class="poke-card" style="${isLeader ? 'border: 1px solid #3b82f6; background: rgba(59, 130, 246, 0.08);' : ''}">
+      <div class="poke-card" style="${isLeader ? 'border: 1px solid #3b82f6; background: rgba(59, 130, 246, 0.08);' : ''} ${isFainted ? 'border-color: #ef4444; background: rgba(239, 68, 68, 0.05);' : ''}">
         <div style="display: flex; gap: 14px; align-items: center;">
-          <img src="${p.spriteFront}" alt="${p.displayName}" class="card-sprite" style="width: 56px; height: 56px;" />
+          <img src="${p.spriteFront}" alt="${p.displayName}" class="card-sprite" style="width: 56px; height: 56px; ${isFainted ? 'filter: grayscale(1) opacity(0.6);' : ''}" />
           
           <div style="flex: 1;">
             <div style="display: flex; align-items: center; gap: 8px;">
               <span style="font-size: 14px; font-weight: 700;">${p.displayName}</span>
               <span style="font-size: 12px; color: #60a5fa; font-weight: 600;">Lv.${p.level}</span>
               ${isLeader ? '<span style="background: #2563eb; color: white; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700;">IN BATTLE</span>' : ''}
+              ${isFainted ? '<span style="background: #ef4444; color: white; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700;">FAINTED</span>' : ''}
             </div>
 
             <div class="poke-types">
@@ -184,7 +230,7 @@ export class TeamModal {
 
             <!-- Stats Bar -->
             <div style="display: flex; gap: 14px; font-size: 11px; color: #cbd5e1; margin-top: 4px;">
-              <span>HP: <strong>${p.currentHp}/${p.maxHp}</strong></span>
+              <span style="${isFainted ? 'color: #ef4444; font-weight: 700;' : ''}">HP: <strong>${p.currentHp}/${p.maxHp}</strong></span>
               <span>ATK: <strong>${p.attack}</strong></span>
               <span>DEF: <strong>${p.defense}</strong></span>
               <span>SPD: <strong>${p.speed}</strong></span>
@@ -205,9 +251,24 @@ export class TeamModal {
           </div>
 
           <!-- Actions -->
-          <div style="display: flex; flex-direction: column; gap: 6px; min-width: 100px;">
-            ${!isBox && !isLeader ? `
+          <div style="display: flex; flex-direction: column; gap: 6px; min-width: 105px;">
+            ${isFainted ? `
+              <button class="btn-small gold" data-revive-poke="${p.uid}" ${gameState.money < 10 ? 'disabled' : ''}>
+                Revive (₽ 10)
+              </button>
+            ` : ''}
+
+            ${!isBox && !isLeader && !isFainted ? `
               <button class="btn-small green" data-set-active="${index}">Set as Active</button>
+            ` : ''}
+
+            ${!isBox && gameState.box.length > 0 ? `
+              <button class="btn-small secondary" data-swap-box="${index}" title="Swap with a Pokémon from Box">
+                🔄 Swap with Box
+              </button>
+            ` : ''}
+
+            ${!isBox && gameState.party.length > 1 ? `
               <button class="btn-small secondary" data-move-box="${index}">To Box</button>
             ` : ''}
 
@@ -220,6 +281,27 @@ export class TeamModal {
         </div>
       </div>
     `;
+  }
+
+  private promptSwapWithBox(partyIdx: number): void {
+    const box = gameState.box;
+    if (box.length === 0) {
+      alert('Your storage box is empty.');
+      return;
+    }
+
+    const list = box
+      .map((p, idx) => `${idx + 1}: ${p.displayName} (Lv.${p.level} - HP ${p.currentHp}/${p.maxHp} ${p.currentHp <= 0 ? '💀' : '💚'})`)
+      .join('\n');
+
+    const choice = prompt(`Select a Pokémon from Box to swap into party:\n${list}\n\nEnter number (1-${box.length}):`);
+    if (choice) {
+      const selectedIdx = parseInt(choice, 10) - 1;
+      if (box[selectedIdx]) {
+        gameState.swapPartyAndBox(partyIdx, selectedIdx);
+        this.render();
+      }
+    }
   }
 }
 

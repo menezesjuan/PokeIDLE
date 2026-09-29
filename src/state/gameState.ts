@@ -1,6 +1,6 @@
 import { ActivePokemon, PokemonSpeciesInfo, pokeApi, calculateStats, getExpForLevel, getExpBetweenLevels } from '../api/pokeApi';
 import { GAME_ITEMS } from '../api/itemsData';
-import { GAME_ROUTES } from '../api/routesData';
+import { GAME_ROUTES, GameRoute } from '../api/routesData';
 
 export interface GameSettings {
   autoHunt: boolean;
@@ -11,6 +11,7 @@ export interface GameSettings {
   preferredPotion: string;
   autoReleaseDuplicates: boolean;
   soundEnabled: boolean;
+  autoAdvanceRoutes: boolean;
 }
 
 export interface GameSaveData {
@@ -52,6 +53,7 @@ class GameStateManager {
     preferredPotion: 'potion',
     autoReleaseDuplicates: false,
     soundEnabled: true,
+    autoAdvanceRoutes: true,
   };
   public stats = {
     totalBattlesWon: 0,
@@ -213,6 +215,65 @@ class GameStateManager {
     return false;
   }
 
+  public swapPartyAndBox(partyIndex: number, boxIndex: number): boolean {
+    if (partyIndex >= 0 && partyIndex < this.party.length && boxIndex >= 0 && boxIndex < this.box.length) {
+      const fromParty = this.party[partyIndex];
+      const fromBox = this.box[boxIndex];
+      this.party[partyIndex] = fromBox;
+      this.box[boxIndex] = fromParty;
+      this.notify();
+      return true;
+    }
+    return false;
+  }
+
+  public get hasConsciousPartyMember(): boolean {
+    return this.party.some(p => p.currentHp > 0);
+  }
+
+  public get faintedPartyMembers(): ActivePokemon[] {
+    return this.party.filter(p => p.currentHp <= 0);
+  }
+
+  public revivePokemon(uid: string): boolean {
+    const pokemon = [...this.party, ...this.box].find(p => p.uid === uid);
+    if (!pokemon || pokemon.currentHp > 0) return false;
+    const REVIVE_COST = 10;
+    if (this.money < REVIVE_COST) return false;
+
+    this.spendMoney(REVIVE_COST);
+    pokemon.currentHp = pokemon.maxHp;
+    this.notify();
+    return true;
+  }
+
+  public reviveAllParty(): { success: boolean; revivedCount: number; totalCost: number } {
+    const fainted = this.party.filter(p => p.currentHp <= 0);
+    if (fainted.length === 0) return { success: false, revivedCount: 0, totalCost: 0 };
+    const costPer = 10;
+    const totalCost = fainted.length * costPer;
+    if (this.money < totalCost) return { success: false, revivedCount: 0, totalCost };
+
+    this.spendMoney(totalCost);
+    for (const p of fainted) {
+      p.currentHp = p.maxHp;
+    }
+    this.notify();
+    return { success: true, revivedCount: fainted.length, totalCost };
+  }
+
+  public emergencyJoyHeal(): boolean {
+    // Only available if player has < 10 coins and 0 alive pokemon in entire party and box
+    const hasAnyAlive = [...this.party, ...this.box].some(p => p.currentHp > 0);
+    if (hasAnyAlive || this.money >= 10) return false;
+    if (this.party.length > 0) {
+      this.party[0].currentHp = Math.max(10, Math.round(this.party[0].maxHp * 0.5));
+      this.notify();
+      return true;
+    }
+    return false;
+  }
+
   public sellPokemon(fromBox: boolean, index: number): number {
     const list = fromBox ? this.box : this.party;
     if (!fromBox && this.party.length <= 1) return 0; // Can't sell last pokemon
@@ -330,27 +391,79 @@ class GameStateManager {
     }
 
     pokemon.expToNextLevel = getExpBetweenLevels(pokemon.level);
+    if (leveledUp) {
+      this.checkRouteProgression(this.currentRouteId);
+    }
     this.notify();
     return { leveledUp, evolved };
   }
 
-  // Route progression
-  public recordRouteKill(routeId: string): void {
-    this.routeKills[routeId] = (this.routeKills[routeId] || 0) + 1;
-    this.stats.totalBattlesWon++;
+  // Route progression helpers
+  public getLatestUnlockedRoute(): GameRoute {
+    let highestIdx = 0;
+    for (const rId of this.unlockedRoutes) {
+      const idx = GAME_ROUTES.findIndex(r => r.id === rId);
+      if (idx > highestIdx) highestIdx = idx;
+    }
+    return GAME_ROUTES[highestIdx] || GAME_ROUTES[0];
+  }
 
+  public isAtFrontierRoute(): boolean {
+    const latest = this.getLatestUnlockedRoute();
+    return this.currentRouteId === latest.id;
+  }
+
+  public getHighestPartyLevel(): number {
+    if (this.party.length === 0) return 1;
+    return Math.max(...this.party.map(p => p.level));
+  }
+
+  public checkRouteProgression(routeId: string): { unlockedNext: boolean; advancedNext: boolean; nextRoute?: GameRoute } {
     const routeIndex = GAME_ROUTES.findIndex(r => r.id === routeId);
-    if (routeIndex !== -1 && routeIndex < GAME_ROUTES.length - 1) {
-      const currentRoute = GAME_ROUTES[routeIndex];
-      const nextRoute = GAME_ROUTES[routeIndex + 1];
-      const required = currentRoute.requiredKillsToUnlockNext || 15;
+    if (routeIndex === -1 || routeIndex >= GAME_ROUTES.length - 1) {
+      return { unlockedNext: false, advancedNext: false };
+    }
 
-      if (this.routeKills[routeId] >= required && !this.unlockedRoutes.includes(nextRoute.id)) {
+    const currentRoute = GAME_ROUTES[routeIndex];
+    const nextRoute = GAME_ROUTES[routeIndex + 1];
+    const requiredKills = currentRoute.requiredKillsToUnlockNext || 15;
+    const currentKills = this.routeKills[routeId] || 0;
+
+    // Progression requirement 1: Defeated enough wild Pokemon in this hunt
+    const killsMet = currentKills >= requiredKills;
+
+    // Progression requirement 2: Pokemon level meets or exceeds the required level for the next route!
+    const highestLevel = this.getHighestPartyLevel();
+    const levelMet = highestLevel >= nextRoute.minLevel;
+
+    let unlockedNext = false;
+    let advancedNext = false;
+
+    if (killsMet && levelMet) {
+      if (!this.unlockedRoutes.includes(nextRoute.id)) {
         this.unlockedRoutes.push(nextRoute.id);
+        unlockedNext = true;
+      }
+
+      // Progression requirement 3: Auto-advance only if player is at their latest unlocked hunt (frontier)
+      // If player voluntarily backtracked to an earlier route, they are manual-farming.
+      // Auto-advance resumes as soon as they select their latest hunt!
+      const isFrontier = this.isAtFrontierRoute() || (routeId === this.getLatestUnlockedRoute().id);
+      if (isFrontier && this.settings.autoAdvanceRoutes) {
+        this.currentRouteId = nextRoute.id;
+        advancedNext = true;
       }
     }
 
     this.notify();
+    return { unlockedNext, advancedNext, nextRoute };
+  }
+
+  // Record Route Kill
+  public recordRouteKill(routeId: string): { unlockedNext: boolean; advancedNext: boolean; nextRoute?: GameRoute } {
+    this.routeKills[routeId] = (this.routeKills[routeId] || 0) + 1;
+    this.stats.totalBattlesWon++;
+    return this.checkRouteProgression(routeId);
   }
 
   public setRoute(routeId: string): void {
@@ -358,6 +471,11 @@ class GameStateManager {
       this.currentRouteId = routeId;
       this.notify();
     }
+  }
+
+  public returnToFrontierHunt(): void {
+    const latest = this.getLatestUnlockedRoute();
+    this.setRoute(latest.id);
   }
 
   public updateSettings(partial: Partial<GameSettings>): void {
