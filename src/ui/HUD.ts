@@ -22,6 +22,7 @@ export class HUD {
   private tickerElement: HTMLElement;
   private isPinned: boolean = false;
   private isCompact: boolean = false;
+  private pipWindow: Window | null = null;
 
   constructor(hudContainerId: string, tickerContainerId: string) {
     this.element = document.getElementById(hudContainerId)!;
@@ -117,13 +118,19 @@ export class HUD {
     this.element.querySelector('#btn-open-bag')?.addEventListener('click', () => bagModal.open());
     this.element.querySelector('#btn-open-team')?.addEventListener('click', () => teamModal.open());
 
-    // Window Pinning (Electron / Desktop)
-    this.element.querySelector('#btn-toggle-pin')?.addEventListener('click', () => {
-      this.isPinned = !this.isPinned;
+    // Window Pinning & PiP Miniplayer
+    this.element.querySelector('#btn-toggle-pin')?.addEventListener('click', async () => {
       if (window.electronAPI?.toggleAlwaysOnTop) {
+        this.isPinned = !this.isPinned;
         window.electronAPI.toggleAlwaysOnTop(this.isPinned);
+        window.electronAPI.setCompactMode(this.isPinned);
+        this.render();
+      } else if ('documentPictureInPicture' in window) {
+        await this.toggleDocumentPip();
+      } else {
+        // Fallback popup window
+        window.open(window.location.href, 'PokeIDLE_PiP', 'width=440,height=280,status=no,toolbar=no,menubar=no,location=no');
       }
-      this.render();
     });
 
     // Compact Mode
@@ -135,6 +142,76 @@ export class HUD {
       }
       this.render();
     });
+  }
+
+  private async toggleDocumentPip(): Promise<void> {
+    const dPip = (window as any).documentPictureInPicture;
+    if (!dPip) return;
+
+    if (this.pipWindow) {
+      this.pipWindow.close();
+      this.pipWindow = null;
+      this.isPinned = false;
+      this.render();
+      return;
+    }
+
+    try {
+      this.pipWindow = await dPip.requestWindow({
+        width: 440,
+        height: 270,
+      });
+
+      // Copy stylesheets
+      [...document.styleSheets].forEach((sheet) => {
+        try {
+          const cssRules = [...sheet.cssRules].map((rule) => rule.cssText).join('');
+          const style = document.createElement('style');
+          style.textContent = cssRules;
+          this.pipWindow!.document.head.appendChild(style);
+        } catch {
+          if (sheet.href) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = sheet.href;
+            this.pipWindow!.document.head.appendChild(link);
+          }
+        }
+      });
+
+      const win = this.pipWindow;
+      if (!win) return;
+
+      win.document.title = 'PokeIDLE - Miniplayer';
+      win.document.body.classList.add('compact-mode');
+      win.document.body.style.cssText = 'margin: 0; padding: 0; background: #0b0f19; overflow-x: hidden;';
+
+      const appEl = document.getElementById('app');
+      const placeholder = document.createElement('div');
+      placeholder.id = 'pip-placeholder';
+      placeholder.style.cssText = 'display: flex; justify-content: center; align-items: center; height: 100vh; color: #94a3b8; font-family: sans-serif; text-align: center; font-size: 14px; padding: 20px;';
+      placeholder.innerHTML = '<div>🎮 <strong>PokeIDLE está ativo na janela PiP (Miniplayer) no canto da tela!</strong><br><br><span style="font-size: 12px; color: #60a5fa;">Feche a janela flutuante para restaurar aqui.</span></div>';
+
+      if (appEl && appEl.parentNode) {
+        appEl.parentNode.insertBefore(placeholder, appEl);
+        win.document.body.appendChild(appEl);
+      }
+
+      this.isPinned = true;
+      this.render();
+
+      win.addEventListener('pagehide', () => {
+        if (placeholder.parentNode && appEl) {
+          placeholder.parentNode.replaceChild(appEl, placeholder);
+        }
+        this.pipWindow = null;
+        this.isPinned = false;
+        this.render();
+      });
+    } catch (e) {
+      console.error('Failed to open Document PiP:', e);
+      window.open(window.location.href, 'PokeIDLE_PiP', 'width=440,height=280,status=no,toolbar=no,menubar=no,location=no');
+    }
   }
 
   private handleCombatEvent(event: CombatEvent): void {
