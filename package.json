@@ -5,6 +5,8 @@
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
+    "start": "node server/standalone.cjs",
+    "server": "node server/standalone.cjs",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "electron:dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",

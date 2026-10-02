@@ -123,11 +123,51 @@ Quando todos os membros conscientes da equipe caem em combate:
 - **Mochila (Bag)**: Utilize poções manualmente, configure a poção predileta do Auto-Heal e escolha qual Pokébola deve ser a padrão de arremesso.
 - **Evoluções com Pedras**: Use pedras elementares diretamente da mochila para despertar formas avançadas (Vaporeon, Jolteon, Flareon, Raichu, etc.).
 
-### 8. Poké Mart & Mercado
-- Compre e venda itens em pacotes unitários ou em lote (**x10**).
-- Venda Pokémons duplicados da Box ou da equipe por Pokédollars calculados com base no nível e estágio evolutivo.
+### 8. 🎨 Pokédex UI Art Model (Inspirado no Modelo Behance / Stort Design)
+O visual dos Pokémons conta com um **Modelo de Arte de Alto Padrão (Pokédex UI Art Model)** diretamente inspirado nas referências de design gráfico moderno de alto valor:
+- **Corte Diagonal & Gradiente Elemental**: Divisão angular precisa entre o painel de estratégia e o fundo saturado correspondente ao tipo elemental do Pokémon (Fogo, Planta, Água, Elétrico, etc.).
+- **Marca d'Água de Pokébola Concéntrica**: Vetor de alta definição em relevo translúcido no fundo temático.
+- **Render Oficial 3D / Sugimori**: Renders de alta resolução da criatura projetando sombras dinâmicas no solo e quebrando os limites do card.
+- **Painel Estratégico de Combate**:
+  - Pílula de busca rápida e chips de status: `[TY]` `[TM]` `[MV]` `[EV]`.
+  - Lore e descrição narrativa traduzida.
+  - Seção `● VANTAGEM`: Tipos elementais super-efetivos e lista `● FORTE CONTRA` com mini sprites dos Pokémons que ele derrota.
+  - Seção `● FRAQUEZA`: Tipos elementais vulneráveis e lista `● FRACO CONTRA` com mini sprites dos counters.
 
-### 9. 🌌 Biomas Autênticos Dinâmicos & Integração com o HUD
+<div align="center">
+  <img src="./docs/images/10_pokedex_art_model.png" alt="Pokédex UI Art Model" width="750" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
+  <p><em>Pokédex UI Art Model exibindo Charizard com análise de fraquezas, vantagens e counters em tempo real.</em></p>
+</div>
+
+### 9. ⚖️ Mercado de Treinadores (P2P) & Loja Oficial
+O jogo conta com uma economia de comércio completa suportada por banco de dados SQLite:
+- **Mercado P2P (Player-to-Player)**:
+  - Treinadores podem anunciar Pokémons do seu Box ou itens da sua Mochila definindo livremente o preço em Pokécoins (₽).
+  - Outros treinadores podem buscar, filtrar por tipo elemental ou categoria (Pokémon ou Itens) e comprar diretamente.
+  - Ao comprar um Pokémon no mercado, ele é transferido imediatamente para a sua equipe ou Box, e os fundos são creditados na conta do vendedor.
+  - Aba **"Meus Anúncios"** para gerenciar ofertas ativas ou cancelar e resgatar o Pokémon/item.
+  - Aba **"Histórico de Trocas"** com feed em tempo real de transações executadas entre jogadores.
+- **Poké Mart Oficial**:
+  - Venda de itens essenciais com catálogo oficial (Pokébolas, Poções, Pedras de Evolução).
+  - Opção para o jogador vender itens excedentes ou vender Pokémons capturados em troca de Pokédollars rápidos.
+
+<div align="center">
+  <img src="./docs/images/11_p2p_market.png" alt="Mercado de Treinadores P2P" width="750" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
+  <p><em>Mercado de Treinadores P2P: Navegação de ofertas de Pokémons e itens raros cadastrados no SQLite.</em></p>
+</div>
+
+### 10. 🔐 Autenticação de Treinador & Persistência com SQLite
+Para garantir que todo o progresso do jogador, compras e anúncios do mercado sejam salvos com segurança e simplicidade, o PokeIDLE utiliza **SQLite** nativo (`node:sqlite`):
+- **Zero Configuração & Máxima Velocidade**: Sem necessidade de instalar servidores externos complexos — o banco de dados `pokeidle.db` opera com alta velocidade usando WAL (Write-Ahead Logging).
+- **Cadastro e Login Simples**: O jogador pode criar sua conta de treinador com nome de exibição e senha.
+- **Sincronização na Nuvem**: O progresso (equipe, box, mochila, moedas, rota atual e diário) é salvo e sincronizado automaticamente com a conta.
+
+<div align="center">
+  <img src="./docs/images/12_auth_profile.png" alt="Perfil do Treinador e SQLite" width="450" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
+  <p><em>Modal de autenticação e sincronização na nuvem do save com o SQLite.</em></p>
+</div>
+
+### 11. 🌌 Biomas Autênticos Dinâmicos & Integração com o HUD
 Cada uma das 12 rotas e zonas de caça conta com um campo de batalha próprio extraído e ampliado dos cenários oficiais de combate Pokémon (geração Black/White em alta definição), integrado perfeitamente ao ecossistema do HUD:
 - **Plataformas de Combate em Isometria**: O Pokémon ativo do jogador e o adversário selvagem se posicionam exatamente sobre as bases de combate autênticas com sombras dinâmicas projetadas.
 - **Sistema de Partículas & Física Atmosférica**:
@@ -155,24 +195,28 @@ Cada uma das 12 rotas e zonas de caça conta com um campo de batalha próprio ex
 <div align="center">
 
 | 1. Escolha do Inicial | 2. Arena de Batalha & Bioma Integrado |
-| :---: | :---: |
+| :---:| :---:|
 | <img src="./docs/images/01_starter_select.png" width="400" /> | <img src="./docs/images/02_battle_arena.png" width="400" /> |
 
-| 3. Menu Radial Pokémon GO | 4. Diário de Batalha |
-| :---: | :---: |
-| <img src="./docs/images/03_radial_menu.png" width="400" /> | <img src="./docs/images/04_battle_diary.png" width="400" /> |
+| 3. Menu Radial Pokémon GO | 4. Pokédex UI Art Model |
+| :---:| :---:|
+| <img src="./docs/images/03_radial_menu.png" width="400" /> | <img src="./docs/images/10_pokedex_art_model.png" width="400" /> |
 
-| 5. Equipe Pokémon & Box | 6. Mochila de Itens |
-| :---: | :---: |
-| <img src="./docs/images/05_team_modal.png" width="400" /> | <img src="./docs/images/06_bag_modal.png" width="400" /> |
+| 5. Mercado de Treinadores (P2P) | 6. Perfil & Nuvem SQLite |
+| :---:| :---:|
+| <img src="./docs/images/11_p2p_market.png" width="400" /> | <img src="./docs/images/12_auth_profile.png" width="400" /> |
 
-| 7. Mapa com Miniaturas de Bioma | 8. Poké Mart & Trocas |
-| :---: | :---: |
-| <img src="./docs/images/07_routes_modal.png" width="400" /> | <img src="./docs/images/08_shop_modal.png" width="400" /> |
+| 7. Diário de Batalha | 8. Equipe Pokémon & Box |
+| :---:| :---:|
+| <img src="./docs/images/04_battle_diary.png" width="400" /> | <img src="./docs/images/05_team_modal.png" width="400" /> |
 
-| 9. Experiência Mobile & Bottom Sheets |
-| :---: |
-| <img src="./docs/images/09_mobile_view.png" width="280" /> |
+| 9. Mochila de Itens | 10. Mapa com Miniaturas de Bioma |
+| :---:| :---:|
+| <img src="./docs/images/06_bag_modal.png" width="400" /> | <img src="./docs/images/07_routes_modal.png" width="400" /> |
+
+| 11. Poké Mart Oficial | 12. Experiência Mobile & Bottom Sheets |
+| :---:| :---:|
+| <img src="./docs/images/08_shop_modal.png" width="400" /> | <img src="./docs/images/09_mobile_view.png" width="280" /> |
 
 </div>
 

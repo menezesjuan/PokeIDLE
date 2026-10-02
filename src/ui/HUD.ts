@@ -9,6 +9,11 @@ import { routesModal } from './RoutesModal';
 import { reviveModal } from './ReviveModal';
 import { logModal } from './LogModal';
 import { activityLog } from '../state/activityLog';
+import { backendClient } from '../api/authApi';
+import { authModal } from './AuthModal';
+import { marketModal } from './MarketModal';
+import { pokedexModal } from './PokedexModal';
+import { createIcon } from './icons';
 
 declare global {
   interface Window {
@@ -46,6 +51,10 @@ export class HUD {
     gameState.subscribe(() => this.render());
     activityLog.subscribe(() => this.render());
     battleEngine.subscribe((event) => this.handleCombatEvent(event));
+
+    window.addEventListener('open-market-search', () => {
+      marketModal.open();
+    });
   }
 
   private createPogoMenuOverlay(): void {
@@ -66,13 +75,13 @@ export class HUD {
     });
   }
 
-  private openPogoMenu(): void {
+  public openPogoMenu(): void {
     if (!this.pogoMenuOverlay) return;
     this.renderPogoMenuContent();
     this.pogoMenuOverlay.classList.add('active');
   }
 
-  private closePogoMenu(): void {
+  public closePogoMenu(): void {
     if (!this.pogoMenuOverlay) return;
     this.pogoMenuOverlay.classList.remove('active');
   }
@@ -82,37 +91,62 @@ export class HUD {
 
     const unread = activityLog.unreadCount;
     const s = gameState.settings;
+    const user = backendClient.user;
 
     this.pogoMenuOverlay.innerHTML = `
       <div class="pogo-menu-grid">
         <!-- 1. Mochila -->
         <button class="pogo-menu-item" id="pogo-btn-bag">
-          <div class="pogo-menu-circle purple">🎒</div>
+          <div class="pogo-menu-circle purple">
+            ${createIcon('bag', '', 26)}
+          </div>
           <span class="pogo-menu-label">Mochila</span>
         </button>
 
-        <!-- 2. Loja -->
+        <!-- 2. Loja Poké Mart -->
         <button class="pogo-menu-item" id="pogo-btn-shop">
-          <div class="pogo-menu-circle gold">🛒</div>
-          <span class="pogo-menu-label">Loja</span>
+          <div class="pogo-menu-circle gold">
+            ${createIcon('shop', '', 26)}
+          </div>
+          <span class="pogo-menu-label">Poké Mart</span>
         </button>
 
-        <!-- 3. Equipe -->
+        <!-- 3. Mercado P2P -->
+        <button class="pogo-menu-item" id="pogo-btn-market">
+          <div class="pogo-menu-circle cyan">
+            ${createIcon('market', '', 26)}
+          </div>
+          <span class="pogo-menu-label">Mercado P2P</span>
+        </button>
+
+        <!-- 4. Pokédex Art Model -->
+        <button class="pogo-menu-item" id="pogo-btn-pokedex">
+          <div class="pogo-menu-circle red">
+            ${createIcon('pokedex', '', 26)}
+          </div>
+          <span class="pogo-menu-label">Pokédex Art</span>
+        </button>
+
+        <!-- 5. Equipe Pokémon -->
         <button class="pogo-menu-item" id="pogo-btn-team">
-          <div class="pogo-menu-circle blue">👥</div>
-          <span class="pogo-menu-label">Equipe</span>
+          <div class="pogo-menu-circle blue">
+            ${createIcon('team', '', 26)}
+          </div>
+          <span class="pogo-menu-label">Equipe & Box</span>
         </button>
 
-        <!-- 4. Rotas -->
+        <!-- 6. Rotas & Hunts -->
         <button class="pogo-menu-item" id="pogo-btn-routes">
-          <div class="pogo-menu-circle green">🗺️</div>
+          <div class="pogo-menu-circle green">
+            ${createIcon('map', '', 26)}
+          </div>
           <span class="pogo-menu-label">Rotas & Hunts</span>
         </button>
 
-        <!-- 5. Diário de Batalha -->
+        <!-- 7. Diário de Batalha -->
         <button class="pogo-menu-item" id="pogo-btn-log">
           <div class="pogo-menu-circle cyan" style="position: relative;">
-            📜
+            ${createIcon('diary', '', 26)}
             ${unread > 0 ? `
               <span style="position: absolute; top: -4px; right: -4px; background: #ef4444; color: white; border-radius: 9999px; font-size: 11px; padding: 2px 6px; font-weight: 800; border: 2px solid #ffffff;">
                 ${unread}
@@ -122,9 +156,19 @@ export class HUD {
           <span class="pogo-menu-label">Diário</span>
         </button>
 
-        <!-- 6. Automações -->
+        <!-- 8. Conta / Treinador -->
+        <button class="pogo-menu-item" id="pogo-btn-auth">
+          <div class="pogo-menu-circle slate">
+            ${createIcon('user', '', 26)}
+          </div>
+          <span class="pogo-menu-label">${user ? 'Meu Perfil' : 'Login / Conta'}</span>
+        </button>
+
+        <!-- 9. Automações -->
         <button class="pogo-menu-item" id="pogo-btn-auto">
-          <div class="pogo-menu-circle slate">⚙️</div>
+          <div class="pogo-menu-circle slate">
+            ${createIcon('settings', '', 26)}
+          </div>
           <span class="pogo-menu-label">Automações</span>
         </button>
       </div>
@@ -132,19 +176,22 @@ export class HUD {
       <!-- Quick Toggles Sub-bar in Menu -->
       <div style="display: flex; gap: 8px; margin-bottom: 30px; flex-wrap: wrap; justify-content: center; max-width: 90%;">
         <button class="glass-pill ${s.autoHunt ? 'green' : ''}" id="pogo-toggle-hunt">
-          ⚔️ Auto-Caçar: <strong>${s.autoHunt ? 'ON' : 'OFF'}</strong>
+          ${createIcon('swords', '', 14)}
+          <span>Auto-Caçar: <strong>${s.autoHunt ? 'ON' : 'OFF'}</strong></span>
         </button>
         <button class="glass-pill ${s.autoCatch ? 'green' : ''}" id="pogo-toggle-catch">
-          🎯 Auto-Captura: <strong>${s.autoCatch ? 'ON' : 'OFF'}</strong>
+          ${createIcon('pokeball', '', 14)}
+          <span>Auto-Captura: <strong>${s.autoCatch ? 'ON' : 'OFF'}</strong></span>
         </button>
         <button class="glass-pill ${s.autoPotion ? 'green' : ''}" id="pogo-toggle-heal">
-          🧪 Auto-Cura: <strong>${s.autoPotion ? 'ON' : 'OFF'}</strong>
+          ${createIcon('heart', '', 14)}
+          <span>Auto-Cura: <strong>${s.autoPotion ? 'ON' : 'OFF'}</strong></span>
         </button>
       </div>
 
       <!-- Close Button -->
       <button class="pogo-menu-close-btn" id="btn-close-pogo-menu" title="Fechar Menu">
-        ✕
+        ${createIcon('close', '', 20)}
       </button>
     `;
 
@@ -157,6 +204,16 @@ export class HUD {
     this.pogoMenuOverlay.querySelector('#pogo-btn-shop')?.addEventListener('click', () => {
       this.closePogoMenu();
       shopModal.open();
+    });
+
+    this.pogoMenuOverlay.querySelector('#pogo-btn-market')?.addEventListener('click', () => {
+      this.closePogoMenu();
+      marketModal.open();
+    });
+
+    this.pogoMenuOverlay.querySelector('#pogo-btn-pokedex')?.addEventListener('click', () => {
+      this.closePogoMenu();
+      pokedexModal.open();
     });
 
     this.pogoMenuOverlay.querySelector('#pogo-btn-team')?.addEventListener('click', () => {
@@ -174,8 +231,12 @@ export class HUD {
       logModal.open();
     });
 
+    this.pogoMenuOverlay.querySelector('#pogo-btn-auth')?.addEventListener('click', () => {
+      this.closePogoMenu();
+      authModal.open();
+    });
+
     this.pogoMenuOverlay.querySelector('#pogo-btn-auto')?.addEventListener('click', () => {
-      // Toggle auto hunt directly
       const next = !gameState.settings.autoHunt;
       gameState.updateSettings({ autoHunt: next });
       if (next && !battleEngine.isBattling) battleEngine.start();
@@ -216,6 +277,7 @@ export class HUD {
     const isFrontier = gameState.isAtFrontierRoute();
     const kills = gameState.routeKills[currentRoute.id] || 0;
     const reqKills = currentRoute.requiredKillsToUnlockNext || 15;
+    const user = backendClient.user;
 
     // Apply atmospheric biome glow to battle container
     const phaserContainer = document.getElementById('phaser-container');
@@ -228,33 +290,48 @@ export class HUD {
       <div class="hud-top-left">
         <!-- Hunt Route Pill with Biome styling -->
         <button class="glass-pill" id="btn-open-routes" style="border-color: ${currentRoute.ambientColor}80; box-shadow: 0 0 12px ${currentRoute.ambientColor}30;" title="${isFrontier ? 'Última Hunt (Auto-Avanço Ativo)' : 'Hunt Anterior (Treino Manual)'}">
-          <span>${currentRoute.ambientIcon}</span>
+          ${createIcon('map', '', 14)}
           <span>${currentRoute.name.split('(')[0]}</span>
           <span style="font-size: 10px; color: ${currentRoute.ambientColor}; font-weight: 700; background: ${currentRoute.ambientColor}20; padding: 1px 6px; border-radius: 9999px;">${currentRoute.biomeName}</span>
           <span style="font-size: 10px; color: #94a3b8; font-family: monospace;">(${kills}/${reqKills})</span>
         </button>
+
+        <!-- P2P Market Quick Pill -->
+        <button class="glass-pill" id="btn-top-market" title="Mercado de Treinadores P2P">
+          ${createIcon('market', 'accent-blue-icon', 14)}
+          <span>Mercado P2P</span>
+        </button>
       </div>
 
       <div class="hud-top-right">
+        <!-- Trainer Account Pill -->
+        <button class="glass-pill" id="btn-top-auth" title="Conta de Treinador (SQLite)">
+          ${createIcon('user', '', 14)}
+          <span>${user ? user.trainer_name : 'Entrar'}</span>
+          <span style="width: 6px; height: 6px; border-radius: 50%; background: ${user ? '#34d399' : '#94a3b8'}; box-shadow: 0 0 6px ${user ? '#34d399' : '#94a3b8'};"></span>
+        </button>
+
         <!-- Pokédollars Pill -->
         <button class="glass-pill gold" id="btn-top-shop" title="Abrir Poké Mart">
-          <span>₽</span>
-          <span>${gameState.money.toLocaleString()}</span>
+          ${createIcon('coin', 'gold-icon', 14)}
+          <span>₽ ${gameState.money.toLocaleString()}</span>
         </button>
 
         <!-- Pin / PiP Window Button -->
         <button class="glass-pill icon-only" id="btn-toggle-pin" title="Fixar no topo / Janela PiP">
-          <span>${this.isPinned ? '📌' : '📍'}</span>
+          ${createIcon('pin', '', 14)}
         </button>
 
         <!-- Compact Toggle -->
         <button class="glass-pill icon-only" id="btn-toggle-compact" title="Alternar modo compacto">
-          <span>${this.isCompact ? '🗖' : '🗗'}</span>
+          ${createIcon('compact', '', 14)}
         </button>
       </div>
     `;
 
     this.topElement.querySelector('#btn-open-routes')?.addEventListener('click', () => routesModal.open());
+    this.topElement.querySelector('#btn-top-market')?.addEventListener('click', () => marketModal.open());
+    this.topElement.querySelector('#btn-top-auth')?.addEventListener('click', () => authModal.open());
     this.topElement.querySelector('#btn-top-shop')?.addEventListener('click', () => shopModal.open());
 
     // Window Pinning & PiP Miniplayer
@@ -318,12 +395,13 @@ export class HUD {
       <div class="pogo-quick-group">
         ${!hasConscious ? `
           <button class="glass-pill" id="btn-open-revive" style="background: rgba(239, 68, 68, 0.35); border-color: #ef4444; color: #fca5a5;">
-            💀 Reviver (₽ 10)
+            ${createIcon('skull', 'red-icon', 14)}
+            <span>Reviver (₽ 10)</span>
           </button>
         ` : `
           <!-- Quick Automation Toggles Pill -->
           <button class="pogo-quick-btn" id="btn-quick-auto-toggle" title="Auto-Caçar / Auto-Captura / Auto-Cura">
-            <span>⚙️</span>
+            ${createIcon('settings', '', 14)}
             <div style="display: flex; gap: 4px; align-items: center;">
               <span class="status-dot ${s.autoHunt ? 'on' : ''}" title="Auto-Hunt"></span>
               <span class="status-dot ${s.autoCatch ? 'on' : ''}" title="Auto-Catch"></span>
@@ -333,7 +411,7 @@ export class HUD {
 
           <!-- Quick Diário Button -->
           <button class="pogo-quick-btn ${unread > 0 ? 'active' : ''}" id="btn-quick-log" title="Diário de Batalha">
-            <span>📜</span>
+            ${createIcon('diary', '', 14)}
             ${unread > 0 ? `<span style="background: #ef4444; color: white; padding: 1px 5px; border-radius: 9999px; font-size: 9px; font-weight: 800;">${unread}</span>` : ''}
           </button>
         `}
@@ -347,7 +425,6 @@ export class HUD {
     this.element.querySelector('#btn-quick-log')?.addEventListener('click', () => logModal.open());
 
     this.element.querySelector('#btn-quick-auto-toggle')?.addEventListener('click', () => {
-      // Toggle auto-hunt quickly or open menu
       const next = !gameState.settings.autoHunt;
       gameState.updateSettings({ autoHunt: next });
       if (next && !battleEngine.isBattling) battleEngine.start();
@@ -401,7 +478,7 @@ export class HUD {
       const placeholder = document.createElement('div');
       placeholder.id = 'pip-placeholder';
       placeholder.style.cssText = 'display: flex; justify-content: center; align-items: center; height: 100vh; color: #94a3b8; font-family: sans-serif; text-align: center; font-size: 14px; padding: 20px;';
-      placeholder.innerHTML = '<div>🎮 <strong>PokeIDLE está ativo na janela PiP (Miniplayer) no canto da tela!</strong><br><br><span style="font-size: 12px; color: #60a5fa;">Feche a janela flutuante para restaurar aqui.</span></div>';
+      placeholder.innerHTML = '<div><strong>PokeIDLE está ativo na janela PiP (Miniplayer) no canto da tela!</strong><br><br><span style="font-size: 12px; color: #60a5fa;">Feche a janela flutuante para restaurar aqui.</span></div>';
 
       if (appEl && appEl.parentNode) {
         appEl.parentNode.insertBefore(placeholder, appEl);
@@ -427,7 +504,7 @@ export class HUD {
 
   private handleCombatEvent(event: CombatEvent): void {
     if (event.type === 'item-drops' && event.drops) {
-      this.tickerElement.innerHTML = `<span style="color: #facc15; font-weight: 700;">🎁 [DROPS]</span> ${event.drops.map(d => `<strong style="color: ${d.category === 'ball' ? '#38bdf8' : '#4ade80'};">+${d.count}x ${d.name}</strong>`).join(' &nbsp;•&nbsp; ')}`;
+      this.tickerElement.innerHTML = `<span style="color: #facc15; font-weight: 700;">[DROPS]</span> ${event.drops.map(d => `<strong style="color: ${d.category === 'ball' ? '#38bdf8' : '#4ade80'};">+${d.count}x ${d.name}</strong>`).join(' &nbsp;•&nbsp; ')}`;
     } else if (event.message) {
       this.tickerElement.innerText = `[REGISTRO] ${event.message}`;
     } else if (event.type === 'bump-attack' && event.attacker === 'player') {

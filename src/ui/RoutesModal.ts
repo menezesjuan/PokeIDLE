@@ -2,6 +2,7 @@ import { gameState } from '../state/gameState';
 import { GAME_ROUTES } from '../api/routesData';
 import { battleEngine } from '../state/battleEngine';
 import { getRouteDropsPreview } from '../api/dropsData';
+import { createIcon } from './icons';
 
 export class RoutesModal {
   private container: HTMLElement | null = null;
@@ -36,8 +37,11 @@ export class RoutesModal {
       <div class="modal-content" style="max-width: 720px;">
         <div class="sheet-handle"></div>
         <div class="modal-header">
-          <div class="modal-title">🗺️ Mapa de Kanto & Hunts de Caça</div>
-          <button class="modal-close-btn" id="routes-close">✕</button>
+          <div class="modal-title">
+            ${createIcon('map', 'accent-blue-icon')}
+            <span>Mapa de Kanto & Hunts de Caça</span>
+          </div>
+          <button class="modal-close-btn" id="routes-close">${createIcon('close')}</button>
         </div>
         <div class="modal-body">
 

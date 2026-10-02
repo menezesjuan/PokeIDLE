@@ -150,7 +150,42 @@ try {
   await new Promise(r => setTimeout(r, 800));
   await capture('08_shop_modal.png');
 
-  // 9. Mobile Viewport Simulation
+  // 9. Open Pokédex Art Model Modal (Behance / Stort Design Gráfico)
+  console.log('Opening Pokédex UI Art Model...');
+  await evaluate(`
+    document.querySelectorAll('.modal-overlay').forEach(m => m.remove());
+    const menuBtn = document.getElementById('btn-pokeball-menu');
+    if (menuBtn) menuBtn.click();
+  `);
+  await new Promise(r => setTimeout(r, 400));
+  await evaluate(`
+    const pkmBtn = document.getElementById('pogo-btn-pokedex');
+    if (pkmBtn) pkmBtn.click();
+  `);
+  await new Promise(r => setTimeout(r, 1500));
+  await capture('10_pokedex_art_model.png');
+
+  // 10. Open Mercado de Treinadores (P2P)
+  console.log('Opening Mercado P2P...');
+  await evaluate(`
+    document.querySelectorAll('.modal-overlay').forEach(m => m.remove());
+    const mktBtn = document.getElementById('btn-top-market');
+    if (mktBtn) mktBtn.click();
+  `);
+  await new Promise(r => setTimeout(r, 1200));
+  await capture('11_p2p_market.png');
+
+  // 11. Open Perfil & Nuvem SQLite
+  console.log('Opening Perfil / Auth SQLite...');
+  await evaluate(`
+    document.querySelectorAll('.modal-overlay').forEach(m => m.remove());
+    const authBtn = document.getElementById('btn-top-auth');
+    if (authBtn) authBtn.click();
+  `);
+  await new Promise(r => setTimeout(r, 800));
+  await capture('12_auth_profile.png');
+
+  // 12. Mobile Viewport Simulation
   console.log('Simulating Mobile Layout...');
   await evaluate(`
     document.querySelectorAll('.modal-overlay').forEach(m => m.remove());

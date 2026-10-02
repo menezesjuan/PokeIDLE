@@ -6,6 +6,8 @@ import { battleEngine } from './state/battleEngine';
 import { HUD } from './ui/HUD';
 import { pokeApi } from './api/pokeApi';
 
+import { createIcon } from './ui/icons';
+
 async function initStarterSelection(): Promise<void> {
   return new Promise((resolve) => {
     const starterModal = document.createElement('div');
@@ -13,7 +15,10 @@ async function initStarterSelection(): Promise<void> {
     starterModal.innerHTML = `
       <div class="modal-content" style="max-width: 520px; text-align: center;">
         <div class="modal-header" style="justify-content: center;">
-          <div class="modal-title">⭐ Escolha seu Pokémon Inicial!</div>
+          <div class="modal-title">
+            ${createIcon('sparkles', 'accent-blue-icon')}
+            <span>Escolha seu Pokémon Inicial</span>
+          </div>
         </div>
         <div class="modal-body">
           <p style="color: #94a3b8; margin-bottom: 20px;">

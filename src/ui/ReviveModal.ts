@@ -1,5 +1,6 @@
 import { gameState } from '../state/gameState';
 import { battleEngine } from '../state/battleEngine';
+import { createIcon } from './icons';
 
 export class ReviveModal {
   private container: HTMLElement | null = null;
@@ -46,10 +47,14 @@ export class ReviveModal {
         <div class="sheet-handle"></div>
         <div class="modal-header" style="background: #1e1b4b; border-bottom: 2px solid #ef4444;">
           <div class="modal-title" style="color: #f87171;">
-            💀 Equipe de Combate Derrotada!
-            <span class="money-badge" style="margin-left: 12px;">₽ ${gameState.money.toLocaleString()}</span>
+            ${createIcon('skull', 'red-icon')}
+            <span>Equipe de Combate Derrotada</span>
+            <span class="user-coins-pill" style="margin-left: 12px;">
+              ${createIcon('coin', 'gold-icon', 14)}
+              <span>₽ ${gameState.money.toLocaleString()}</span>
+            </span>
           </div>
-          ${hasConscious ? '<button class="modal-close-btn" id="revive-close">✕</button>' : ''}
+          ${hasConscious ? `<button class="modal-close-btn" id="revive-close">${createIcon('close')}</button>` : ''}
         </div>
 
         <div class="modal-body">

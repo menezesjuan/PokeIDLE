@@ -1,5 +1,7 @@
 import { gameState } from '../state/gameState';
 import { GAME_ITEMS, GameItem } from '../api/itemsData';
+import { createIcon } from './icons';
+import { marketModal } from './MarketModal';
 
 export class ShopModal {
   private container: HTMLElement | null = null;
@@ -29,19 +31,37 @@ export class ShopModal {
     if (!this.container) return;
 
     this.container.innerHTML = `
-      <div class="modal-content">
+      <div class="modal-content shop-modal-content">
         <div class="sheet-handle"></div>
         <div class="modal-header">
           <div class="modal-title">
-            🛒 Poké Mart & Centro de Trocas
-            <span class="money-badge" style="margin-left: 12px;">₽ ${gameState.money.toLocaleString()}</span>
+            ${createIcon('shop', 'accent-blue-icon')}
+            <span>Poké Mart Oficial</span>
+            <span class="user-coins-pill" style="margin-left: 12px;">
+              ${createIcon('coin', 'gold-icon', 14)}
+              <span>₽ ${gameState.money.toLocaleString()}</span>
+            </span>
           </div>
-          <button class="modal-close-btn" id="shop-close">✕</button>
+          <button class="modal-close-btn" id="shop-close">
+            ${createIcon('close')}
+          </button>
         </div>
         <div class="modal-body">
+          <!-- P2P Market Promotion Banner -->
+          <div style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(56, 189, 248, 0.05) 100%); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 14px; padding: 12px 16px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <strong style="color: #38bdf8; display: block; font-size: 13px;">Mercado de Treinadores (P2P) Disponível!</strong>
+              <span style="font-size: 11px; color: #94a3b8;">Compre e venda Pokémon raros e itens diretamente com outros treinadores.</span>
+            </div>
+            <button class="art-primary-btn compact" id="btn-goto-p2p" style="width: auto;">
+              ${createIcon('market', '', 14)}
+              <span>Ir ao Mercado P2P</span>
+            </button>
+          </div>
+
           <div class="modal-tabs">
-            <button class="modal-tab-btn ${this.currentTab === 'buy' ? 'active' : ''}" data-tab="buy">Comprar Itens</button>
-            <button class="modal-tab-btn ${this.currentTab === 'sell-items' ? 'active' : ''}" data-tab="sell-items">Vender Itens</button>
+            <button class="modal-tab-btn ${this.currentTab === 'buy' ? 'active' : ''}" data-tab="buy">Comprar da Loja</button>
+            <button class="modal-tab-btn ${this.currentTab === 'sell-items' ? 'active' : ''}" data-tab="sell-items">Vender Meus Itens</button>
             <button class="modal-tab-btn ${this.currentTab === 'sell-pokemon' ? 'active' : ''}" data-tab="sell-pokemon">Vender Pokémon</button>
           </div>
 
@@ -54,6 +74,11 @@ export class ShopModal {
 
     // Event handlers
     this.container.querySelector('#shop-close')?.addEventListener('click', () => this.close());
+
+    this.container.querySelector('#btn-goto-p2p')?.addEventListener('click', () => {
+      this.close();
+      marketModal.open();
+    });
 
     this.container.querySelectorAll('.modal-tab-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -99,94 +124,87 @@ export class ShopModal {
         this.handleSellPokemon(fromBox, index);
       });
     });
-
-    // Auto-release duplicate toggle
-    const autoReleaseCheck = this.container.querySelector('#auto-release-duplicates') as HTMLInputElement;
-    if (autoReleaseCheck) {
-      autoReleaseCheck.addEventListener('change', (e) => {
-        gameState.updateSettings({ autoReleaseDuplicates: (e.target as HTMLInputElement).checked });
-      });
-    }
   }
 
   private renderBuyTab(): string {
-    const items = Object.values(GAME_ITEMS).filter(item => 
-      this.buyFilter === 'all' || item.category === this.buyFilter
-    );
+    const items = Object.values(GAME_ITEMS).filter(item => {
+      if (this.buyFilter === 'all') return true;
+      return item.category === this.buyFilter;
+    });
 
     return `
-      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-        <button class="btn-small ${this.buyFilter === 'all' ? 'gold' : ''} buy-filter-btn" data-filter="all">Todos</button>
-        <button class="btn-small ${this.buyFilter === 'ball' ? 'gold' : ''} buy-filter-btn" data-filter="ball">Pokébolas</button>
-        <button class="btn-small ${this.buyFilter === 'healing' ? 'gold' : ''} buy-filter-btn" data-filter="healing">Poções</button>
-        <button class="btn-small ${this.buyFilter === 'stone' ? 'gold' : ''} buy-filter-btn" data-filter="stone">Pedras</button>
+      <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+        <button class="filter-chip ${this.buyFilter === 'all' ? 'active' : ''} buy-filter-btn" data-filter="all">Todos</button>
+        <button class="filter-chip ${this.buyFilter === 'ball' ? 'active' : ''} buy-filter-btn" data-filter="ball">Pokébolas</button>
+        <button class="filter-chip ${this.buyFilter === 'healing' ? 'active' : ''} buy-filter-btn" data-filter="healing">Cura</button>
+        <button class="filter-chip ${this.buyFilter === 'stone' ? 'active' : ''} buy-filter-btn" data-filter="stone">Pedras de Evolução</button>
       </div>
-      <div class="cards-grid">
-        ${items.map(item => {
-          const canAfford1 = gameState.money >= item.cost;
-          const canAfford10 = gameState.money >= (item.cost * 10);
 
-          return `
-            <div class="item-card">
-              <div class="card-top">
-                <img src="${item.spriteUrl}" alt="${item.name}" class="card-sprite" />
-                <div class="card-details">
-                  <div class="card-name">${item.name}</div>
-                  <div class="card-count" style="color: var(--pokedollar-gold);">₽ ${item.cost.toLocaleString()}</div>
-                </div>
-              </div>
-              <div class="card-desc">${item.description}</div>
-              <div class="card-actions">
-                <button class="btn-small green" data-buy-item="${item.id}" data-qty="1" ${!canAfford1 ? 'disabled' : ''}>
-                  Comprar x1
-                </button>
-                <button class="btn-small green" data-buy-item="${item.id}" data-qty="10" ${!canAfford10 ? 'disabled' : ''}>
-                  Comprar x10
-                </button>
-              </div>
-            </div>
-          `;
-        }).join('')}
+      <div class="cards-grid">
+        ${items.map(item => this.renderBuyCard(item)).join('')}
+      </div>
+    `;
+  }
+
+  private renderBuyCard(item: GameItem): string {
+    const canAfford1 = gameState.money >= item.cost;
+    const canAfford10 = gameState.money >= (item.cost * 10);
+
+    return `
+      <div class="item-card">
+        <div class="card-top">
+          <img src="${item.spriteUrl}" alt="${item.name}" class="card-sprite" />
+          <div class="card-details">
+            <div class="card-name">${item.name}</div>
+            <div class="card-count" style="color: #fbbf24;">₽ ${item.cost.toLocaleString()}</div>
+          </div>
+        </div>
+        <div class="card-desc">${item.description}</div>
+        <div class="card-actions">
+          <button class="btn-small ${canAfford1 ? 'green' : ''}" data-buy-item="${item.id}" data-qty="1" ${!canAfford1 ? 'disabled' : ''}>
+            Comprar 1
+          </button>
+          <button class="btn-small ${canAfford10 ? 'gold' : ''}" data-buy-item="${item.id}" data-qty="10" ${!canAfford10 ? 'disabled' : ''}>
+            Comprar 10
+          </button>
+        </div>
       </div>
     `;
   }
 
   private renderSellItemsTab(): string {
     const inv = gameState.inventory;
-    const itemsOwned = Object.keys(inv).filter(id => (inv[id] || 0) > 0);
+    const itemsToSell = Object.keys(inv).filter(id => (inv[id] || 0) > 0);
 
-    if (itemsOwned.length === 0) {
+    if (itemsToSell.length === 0) {
       return `
-        <div style="text-align: center; color: #9ca3af; padding: 40px 0;">
-          Sua mochila está vazia! Você não possui itens para vender no momento.
+        <div style="text-align: center; color: #94a3b8; padding: 40px 0; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+          ${createIcon('bag', '', 36)}
+          <span>Você não possui itens para vender na mochila.</span>
         </div>
       `;
     }
 
     return `
       <div class="cards-grid">
-        ${itemsOwned.map(id => {
+        ${itemsToSell.map(id => {
           const item = GAME_ITEMS[id];
-          if (!item) return '';
           const count = inv[id];
           const sellPrice = Math.floor(item.cost * 0.5);
-
           return `
             <div class="item-card">
               <div class="card-top">
                 <img src="${item.spriteUrl}" alt="${item.name}" class="card-sprite" />
                 <div class="card-details">
                   <div class="card-name">${item.name}</div>
-                  <div class="card-count">Possui: x${count} | Venda: ₽ ${sellPrice.toLocaleString()}</div>
+                  <div class="card-count">Possui: <strong>${count}</strong> (Vende por ₽ ${sellPrice})</div>
                 </div>
               </div>
               <div class="card-actions">
-                <button class="btn-small red" data-sell-item="${item.id}" data-qty="1">
-                  Vender x1 (+₽ ${sellPrice})
-                </button>
-                <button class="btn-small red" data-sell-item="${item.id}" data-qty="${count}">
-                  Vender Tudo (+₽ ${(sellPrice * count).toLocaleString()})
-                </button>
+                <button class="btn-small gold" data-sell-item="${item.id}" data-qty="1">Vender 1 (+₽ ${sellPrice})</button>
+                ${count >= 5 ? `
+                  <button class="btn-small gold" data-sell-item="${item.id}" data-qty="${count}">Vender Todos (+₽ ${sellPrice * count})</button>
+                ` : ''}
               </div>
             </div>
           `;
@@ -196,77 +214,34 @@ export class ShopModal {
   }
 
   private renderSellPokemonTab(): string {
-    const boxPokemons = gameState.box;
-    const partyPokemons = gameState.party;
+    const box = gameState.box;
+
+    if (box.length === 0) {
+      return `
+        <div style="text-align: center; color: #94a3b8; padding: 40px 0; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+          ${createIcon('pokeball', '', 36)}
+          <span>Nenhum Pokémon disponível no Box para vender ao Poké Mart.</span>
+        </div>
+      `;
+    }
 
     return `
-      <div style="margin-bottom: 14px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
-        <div>
-          <strong style="color: #60a5fa;">Centro de Criadores Pokémon:</strong>
-          <span style="color: #9ca3af; font-size: 12px; margin-left: 6px;">Venda Pokémons excedentes por ₽ Pokédollars com base no nível!</span>
-        </div>
-        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;">
-          <input type="checkbox" id="auto-release-duplicates" ${gameState.settings.autoReleaseDuplicates ? 'checked' : ''} />
-          Auto-Vender Duplicatas
-        </label>
-      </div>
-
-      <div style="font-size: 13px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px;">
-        📦 Box Pokémon (${boxPokemons.length} Pokémon)
-      </div>
-
-      ${boxPokemons.length === 0 ? `
-        <div style="text-align: center; color: #9ca3af; padding: 20px 0;">
-          Nenhum Pokémon na Box de reserva. Pokémons capturados aparecerão aqui quando sua equipe de 6 estiver cheia!
-        </div>
-      ` : `
-        <div class="cards-grid" style="margin-bottom: 20px;">
-          ${boxPokemons.map((poke, idx) => {
-            const sellValue = Math.floor(poke.level * 80 + 100);
-            return `
-              <div class="poke-card">
-                <div class="card-top">
-                  <img src="${poke.spriteFront}" alt="${poke.displayName}" class="card-sprite" />
-                  <div class="card-details">
-                    <div class="card-name">${poke.displayName} <span style="font-size: 11px; color: #60a5fa;">Lv.${poke.level}</span></div>
-                    <div class="poke-types">
-                      ${poke.types.map(t => `<span class="type-pill type-${t}">${t}</span>`).join('')}
-                    </div>
-                  </div>
-                </div>
-                <div class="card-actions">
-                  <button class="btn-small red" data-from-box="true" data-sell-poke-index="${idx}">
-                    Vender por ₽ ${sellValue.toLocaleString()}
-                  </button>
-                </div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      `}
-
-      <div style="font-size: 13px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px;">
-        👥 Equipe Ativa (Permite venda se houver mais de 1 Pokémon)
-      </div>
-      <div class="cards-grid">
-        ${partyPokemons.map((poke, idx) => {
-          const sellValue = Math.floor(poke.level * 80 + 100);
-          const isOnlyPokemon = partyPokemons.length <= 1;
-
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        ${box.map((p, idx) => {
+          const sellValue = Math.floor(p.level * 80 + 100);
           return `
-            <div class="poke-card">
-              <div class="card-top">
-                <img src="${poke.spriteFront}" alt="${poke.displayName}" class="card-sprite" />
-                <div class="card-details">
-                  <div class="card-name">${poke.displayName} <span style="font-size: 11px; color: #60a5fa;">Lv.${poke.level}</span></div>
-                  <div class="poke-types">
-                    ${poke.types.map(t => `<span class="type-pill type-${t}">${t}</span>`).join('')}
-                  </div>
+            <div class="my-listing-row">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="${p.spriteFront}" style="width: 38px; height: 38px;" />
+                <div>
+                  <span style="font-weight: 700; color: #f8fafc;">${p.displayName}</span>
+                  <span style="font-size: 11px; color: #38bdf8; display: block;">Lv. ${p.level} • HP ${p.currentHp}/${p.maxHp}</span>
                 </div>
               </div>
-              <div class="card-actions">
-                <button class="btn-small red" data-from-box="false" data-sell-poke-index="${idx}" ${isOnlyPokemon ? 'disabled' : ''}>
-                  ${isOnlyPokemon ? 'Inicial Ativo' : `Vender por ₽ ${sellValue.toLocaleString()}`}
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: #fbbf24; font-weight: 800; font-family: monospace;">+₽ ${sellValue.toLocaleString()}</span>
+                <button class="btn-small gold" data-sell-poke-index="${idx}" data-from-box="true" style="flex: 0 0 auto;">
+                  Vender
                 </button>
               </div>
             </div>
@@ -279,33 +254,28 @@ export class ShopModal {
   private handleBuy(itemId: string, qty: number): void {
     const item = GAME_ITEMS[itemId];
     if (!item) return;
+
     const totalCost = item.cost * qty;
     if (gameState.spendMoney(totalCost)) {
       gameState.addItem(itemId, qty);
       this.render();
-    } else {
-      alert('Pokédollars insuficientes!');
     }
   }
 
   private handleSellItem(itemId: string, qty: number): void {
     const item = GAME_ITEMS[itemId];
     if (!item) return;
-    const owned = gameState.getItemCount(itemId);
-    const toSell = Math.min(owned, qty);
-    if (toSell > 0) {
-      const sellPrice = Math.floor(item.cost * 0.5) * toSell;
-      gameState.removeItem(itemId, toSell);
+
+    if (gameState.removeItem(itemId, qty)) {
+      const sellPrice = Math.floor(item.cost * 0.5) * qty;
       gameState.addMoney(sellPrice);
       this.render();
     }
   }
 
   private handleSellPokemon(fromBox: boolean, index: number): void {
-    const earned = gameState.sellPokemon(fromBox, index);
-    if (earned > 0) {
-      this.render();
-    }
+    gameState.sellPokemon(fromBox, index);
+    this.render();
   }
 }
 

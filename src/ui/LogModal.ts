@@ -1,4 +1,5 @@
 import { activityLog, LogCategory, LogEntry, IdleSessionStats } from '../state/activityLog';
+import { createIcon } from './icons';
 
 export class LogModal {
   private container: HTMLElement | null = null;
@@ -64,7 +65,10 @@ export class LogModal {
         <div class="sheet-handle"></div>
         <div class="modal-header">
           <div>
-            <div class="modal-title">📜 Diário de Batalha</div>
+            <div class="modal-title">
+              ${createIcon('diary', 'accent-blue-icon')}
+              <span>Diário de Batalha</span>
+            </div>
             <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">
               Histórico detalhado de combates, capturas, drops e eventos enquanto você esteve inativo.
             </div>
@@ -73,7 +77,7 @@ export class LogModal {
             <button class="btn-small red" id="btn-clear-logs" style="font-size: 11px; padding: 4px 10px;">
               Limpar Diário
             </button>
-            <button class="modal-close-btn" id="log-close">✕</button>
+            <button class="modal-close-btn" id="log-close">${createIcon('close')}</button>
           </div>
         </div>
 
@@ -87,22 +91,22 @@ export class LogModal {
               Todos (${allLogs.length})
             </button>
             <button class="modal-tab-btn ${this.currentCategory === 'idle' ? 'active' : ''}" data-cat="idle" style="${idleLogsCount > 0 ? 'border-color: #facc15; color: #facc15;' : ''}">
-              😴 Enquanto Ausente (${idleLogsCount})
+              ${createIcon('cloud', '', 12)} Ausente (${idleLogsCount})
             </button>
             <button class="modal-tab-btn ${this.currentCategory === 'drop' ? 'active' : ''}" data-cat="drop">
-              🎁 Drops
+              ${createIcon('sparkles', '', 12)} Drops
             </button>
             <button class="modal-tab-btn ${this.currentCategory === 'catch' ? 'active' : ''}" data-cat="catch">
-              🎯 Capturas
+              ${createIcon('pokeball', '', 12)} Capturas
             </button>
             <button class="modal-tab-btn ${this.currentCategory === 'battle' ? 'active' : ''}" data-cat="battle">
-              ⚔️ Vitórias
+              ${createIcon('swords', '', 12)} Vitórias
             </button>
             <button class="modal-tab-btn ${this.currentCategory === 'level' ? 'active' : ''}" data-cat="level">
-              ⚡ Níveis
+              ${createIcon('zap', '', 12)} Níveis
             </button>
             <button class="modal-tab-btn ${this.currentCategory === 'defeat' ? 'active' : ''}" data-cat="defeat">
-              💀 Derrotas
+              ${createIcon('skull', '', 12)} Derrotas
             </button>
           </div>
 

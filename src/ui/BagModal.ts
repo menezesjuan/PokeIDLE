@@ -1,5 +1,6 @@
 import { gameState } from '../state/gameState';
 import { GAME_ITEMS, GameItem, ItemCategory } from '../api/itemsData';
+import { createIcon } from './icons';
 
 export class BagModal {
   private container: HTMLElement | null = null;
@@ -38,8 +39,13 @@ export class BagModal {
       <div class="modal-content">
         <div class="sheet-handle"></div>
         <div class="modal-header">
-          <div class="modal-title">🎒 Mochila de Itens</div>
-          <button class="modal-close-btn" id="bag-close">✕</button>
+          <div class="modal-title">
+            ${createIcon('bag', 'accent-blue-icon')}
+            <span>Mochila de Itens</span>
+          </div>
+          <button class="modal-close-btn" id="bag-close">
+            ${createIcon('close')}
+          </button>
         </div>
         <div class="modal-body">
           <div class="modal-tabs">
@@ -50,8 +56,9 @@ export class BagModal {
           </div>
 
           ${filteredItems.length === 0 ? `
-            <div style="text-align: center; color: #9ca3af; padding: 40px 0;">
-              Nenhum item nesta categoria. Visite a <strong>Loja</strong> ou vença hunts para conseguir suprimentos!
+            <div style="text-align: center; color: #94a3b8; padding: 40px 0; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+              ${createIcon('bag', '', 36)}
+              <span>Nenhum item nesta categoria. Visite a Loja ou vença hunts para conseguir suprimentos!</span>
             </div>
           ` : `
             <div class="cards-grid">
@@ -93,18 +100,20 @@ export class BagModal {
       actionBtnHtml = `
         <button class="btn-small green" data-action="use-potion" data-item-id="${item.id}">Curar Ativo</button>
         <button class="btn-small ${isPreferredPotion ? 'gold' : ''}" data-action="set-potion" data-item-id="${item.id}">
-          ${isPreferredPotion ? '★ Auto-Cura' : 'Definir Auto'}
+          ${isPreferredPotion ? 'Auto-Cura Ativa' : 'Definir Auto'}
         </button>
       `;
     } else if (item.category === 'ball') {
       actionBtnHtml = `
         <button class="btn-small ${isPreferredBall ? 'gold' : ''}" data-action="set-ball" data-item-id="${item.id}">
-          ${isPreferredBall ? '★ Bola de Captura' : 'Usar na Captura'}
+          ${isPreferredBall ? 'Auto-Captura Ativa' : 'Usar para Captura'}
         </button>
       `;
     } else if (item.category === 'stone') {
       actionBtnHtml = `
-        <button class="btn-small gold" data-action="use-stone" data-item-id="${item.id}">Usar Pedra</button>
+        <div style="font-size: 10px; color: #f59e0b; text-align: center; margin-top: 4px;">
+          Use na aba Equipe & Box
+        </div>
       `;
     }
 
@@ -114,7 +123,7 @@ export class BagModal {
           <img src="${item.spriteUrl}" alt="${item.name}" class="card-sprite" />
           <div class="card-details">
             <div class="card-name">${item.name}</div>
-            <div class="card-count">x${count}</div>
+            <div class="card-count">Qtd: <strong>${count}</strong></div>
           </div>
         </div>
         <div class="card-desc">${item.description}</div>
@@ -125,46 +134,24 @@ export class BagModal {
     `;
   }
 
-  private async handleItemAction(action: string, itemId: string): Promise<void> {
-    const active = gameState.activePokemon;
-
+  private handleItemAction(action: string, itemId: string): void {
     if (action === 'use-potion') {
+      const active = gameState.activePokemon;
       if (!active) return;
       if (active.currentHp >= active.maxHp) {
-        alert(`${active.displayName} já está com o HP cheio!`);
+        alert(`${active.displayName} já está com a vida cheia!`);
         return;
       }
-      gameState.useHealingItem(itemId, active);
-      this.render();
+      const success = gameState.useHealingItem(itemId, active);
+      if (success) {
+        this.render();
+      }
     } else if (action === 'set-potion') {
-      gameState.updateSettings({ preferredPotion: itemId });
+      gameState.updateSettings({ preferredPotion: itemId, autoPotion: true });
       this.render();
     } else if (action === 'set-ball') {
-      gameState.updateSettings({ preferredBall: itemId });
+      gameState.updateSettings({ preferredBall: itemId, autoCatch: true });
       this.render();
-    } else if (action === 'use-stone') {
-      // Find eligible Pokemon in party & box
-      const allPokemons = [...gameState.party, ...gameState.box];
-      const eligible = allPokemons.filter(p => 
-        p.evolutions.some(e => e.triggerType === 'use-item' && e.item === itemId)
-      );
-
-      if (eligible.length === 0) {
-        alert(`Nenhum dos seus Pokémons atuais pode evoluir com a ${GAME_ITEMS[itemId]?.name}!`);
-        return;
-      }
-
-      // Prompt or select pokemon to evolve
-      const names = eligible.map((p, idx) => `${idx + 1}: ${p.displayName} (Nv.${p.level})`).join('\n');
-      const selection = prompt(`Qual Pokémon você deseja evoluir com ${GAME_ITEMS[itemId]?.name}?\n${names}\n\nDigite o número (1-${eligible.length}):`);
-      if (selection) {
-        const index = parseInt(selection, 10) - 1;
-        if (eligible[index]) {
-          await gameState.useEvolutionStone(itemId, eligible[index]);
-          alert(`${eligible[index].displayName} evoluiu com sucesso!`);
-          this.render();
-        }
-      }
     }
   }
 }

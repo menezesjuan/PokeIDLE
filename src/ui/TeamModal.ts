@@ -1,6 +1,10 @@
 import { gameState } from '../state/gameState';
 import { ActivePokemon, getExpForLevel } from '../api/pokeApi';
 import { GAME_ITEMS } from '../api/itemsData';
+import { createIcon } from './icons';
+import { pokedexModal } from './PokedexModal';
+import { marketModal } from './MarketModal';
+import { getTypeInfo } from '../api/typeChart';
 
 export class TeamModal {
   private container: HTMLElement | null = null;
@@ -29,19 +33,26 @@ export class TeamModal {
     if (!this.container) return;
 
     this.container.innerHTML = `
-      <div class="modal-content">
+      <div class="modal-content team-modal-content">
         <div class="sheet-handle"></div>
         <div class="modal-header">
-          <div class="modal-title">👥 Equipe Pokémon & Box</div>
-          <button class="modal-close-btn" id="team-close">✕</button>
+          <div class="modal-title">
+            ${createIcon('team', 'accent-blue-icon')}
+            <span>Equipe Pokémon & Box</span>
+          </div>
+          <button class="modal-close-btn" id="team-close">
+            ${createIcon('close')}
+          </button>
         </div>
         <div class="modal-body">
           <div class="modal-tabs">
             <button class="modal-tab-btn ${this.currentTab === 'party' ? 'active' : ''}" data-tab="party">
-              Equipe Ativa (${gameState.party.length}/6)
+              ${createIcon('pokeball', '', 14)}
+              <span>Equipe Ativa (${gameState.party.length}/6)</span>
             </button>
             <button class="modal-tab-btn ${this.currentTab === 'box' ? 'active' : ''}" data-tab="box">
-              Box de Reserva (${gameState.box.length})
+              ${createIcon('bag', '', 14)}
+              <span>Box de Reserva (${gameState.box.length})</span>
             </button>
           </div>
 
@@ -81,6 +92,23 @@ export class TeamModal {
         const idx = parseInt((e.currentTarget as HTMLElement).getAttribute('data-move-party')!, 10);
         gameState.movePokemonToParty(idx);
         this.render();
+      });
+    });
+
+    // Inspect Pokedex Art Card
+    this.container.querySelectorAll('[data-inspect-poke]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const speciesId = parseInt((e.currentTarget as HTMLElement).getAttribute('data-inspect-poke')!, 10);
+        this.close();
+        pokedexModal.open(speciesId);
+      });
+    });
+
+    // Open Market from Box
+    this.container.querySelectorAll('[data-sell-market]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.close();
+        marketModal.open();
       });
     });
 
@@ -136,13 +164,17 @@ export class TeamModal {
 
     return `
       ${faintedCount > 0 ? `
-        <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
-          <div>
-            <strong style="color: #f87171;">💀 ${faintedCount} Pokémon desmaiado(s) na equipe!</strong>
-            <div style="font-size: 11px; color: #fca5a5;">Reviva individualmente por ₽ 10 cada ou reviva todos:</div>
+        <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            ${createIcon('skull', 'red-icon', 20)}
+            <div>
+              <strong style="color: #f87171;">${faintedCount} Pokémon desmaiado(s) na equipe!</strong>
+              <div style="font-size: 11px; color: #fca5a5;">Reviva individualmente por ₽ 10 cada ou reviva todos:</div>
+            </div>
           </div>
-          <button class="btn-small gold" id="btn-team-revive-all" ${gameState.money < totalCost ? 'disabled' : ''} style="padding: 6px 12px;">
-            ✨ Reviver Todos (${faintedCount} por ₽ ${totalCost})
+          <button class="btn-small gold" id="btn-team-revive-all" ${gameState.money < totalCost ? 'disabled' : ''} style="padding: 6px 12px; display: flex; align-items: center; gap: 6px;">
+            ${createIcon('sparkles', '', 14)}
+            <span>Reviver Todos (${faintedCount} por ₽ ${totalCost})</span>
           </button>
         </div>
       ` : ''}
@@ -157,8 +189,9 @@ export class TeamModal {
     const box = gameState.box;
     if (box.length === 0) {
       return `
-        <div style="text-align: center; color: #9ca3af; padding: 40px 0;">
-          Sua Box de reserva está vazia. Capture mais Pokémon para vê-los aqui!
+        <div style="text-align: center; color: #94a3b8; padding: 40px 0; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+          ${createIcon('bag', '', 36)}
+          <span>Sua Box de reserva está vazia. Capture mais Pokémon para vê-los aqui!</span>
         </div>
       `;
     }
@@ -172,6 +205,7 @@ export class TeamModal {
 
   private renderPokemonDetailCard(p: ActivePokemon, index: number, isBox: boolean): string {
     const isLeader = !isBox && index === 0;
+    const typeInfo = getTypeInfo(p.types[0] || 'normal');
 
     // Check evolutions
     let evoInfoHtml = '';
@@ -202,7 +236,7 @@ export class TeamModal {
         return '';
       }).join('');
 
-      evoInfoHtml = `<div style="margin-top: 6px; font-size: 11px; background: rgba(0,0,0,0.25); padding: 4px 8px; border-radius: 4px;">${evoList}</div>`;
+      evoInfoHtml = `<div style="margin-top: 6px; font-size: 11px; background: rgba(0,0,0,0.25); padding: 4px 8px; border-radius: 6px;">${evoList}</div>`;
     }
 
     // EXP progress
@@ -213,15 +247,15 @@ export class TeamModal {
     const isFainted = p.currentHp <= 0;
 
     return `
-      <div class="poke-card" style="${isLeader ? 'border: 1px solid #3b82f6; background: rgba(59, 130, 246, 0.08);' : ''} ${isFainted ? 'border-color: #ef4444; background: rgba(239, 68, 68, 0.05);' : ''}">
-        <div style="display: flex; gap: 14px; align-items: center;">
+      <div class="poke-card" style="border-left: 4px solid ${typeInfo.color}; ${isLeader ? 'border: 1px solid #3b82f6; border-left: 4px solid #3b82f6; background: rgba(59, 130, 246, 0.08);' : ''} ${isFainted ? 'border-color: #ef4444; background: rgba(239, 68, 68, 0.05);' : ''}">
+        <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
           <img src="${p.spriteFront}" alt="${p.displayName}" class="card-sprite" style="width: 56px; height: 56px; ${isFainted ? 'filter: grayscale(1) opacity(0.6);' : ''}" />
           
-          <div style="flex: 1;">
+          <div style="flex: 1; min-width: 180px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 14px; font-weight: 700;">${p.displayName}</span>
-              <span style="font-size: 12px; color: #60a5fa; font-weight: 600;">Lv.${p.level}</span>
-              ${isLeader ? '<span style="background: #2563eb; color: white; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700;">LÍDER EM BATALHA</span>' : ''}
+              <span style="font-size: 14px; font-weight: 800;">${p.displayName}</span>
+              <span style="font-size: 12px; color: #60a5fa; font-weight: 700;">Lv.${p.level}</span>
+              ${isLeader ? '<span style="background: #2563eb; color: white; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700;">LÍDER</span>' : ''}
               ${isFainted ? '<span style="background: #ef4444; color: white; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700;">DESMAIADO</span>' : ''}
             </div>
 
@@ -252,7 +286,12 @@ export class TeamModal {
           </div>
 
           <!-- Actions -->
-          <div style="display: flex; flex-direction: column; gap: 6px; min-width: 130px;">
+          <div style="display: flex; flex-direction: column; gap: 6px; min-width: 140px;">
+            <button class="btn-small secondary" data-inspect-poke="${p.speciesId}" title="Ver modelo de arte Pokédex">
+              ${createIcon('pokedex', '', 12)}
+              <span>Ver Pokédex Art</span>
+            </button>
+
             ${isFainted ? `
               <button class="btn-small gold" data-revive-poke="${p.uid}" ${gameState.money < 10 ? 'disabled' : ''}>
                 Reviver (₽ 10)
@@ -265,17 +304,21 @@ export class TeamModal {
 
             ${!isBox && gameState.box.length > 0 ? `
               <button class="btn-small secondary" data-swap-box="${index}" title="Trocar com um Pokémon da Box">
-                🔄 Trocar com a Box
+                Trocar com a Box
               </button>
             ` : ''}
 
             ${!isBox && gameState.party.length > 1 ? `
-              <button class="btn-small secondary" data-move-box="${index}">Remover da equipe</button>
+              <button class="btn-small secondary" data-move-box="${index}">Mover para o Box</button>
             ` : ''}
 
             ${isBox ? `
               <button class="btn-small green" data-move-party="${index}" ${gameState.party.length >= 6 ? 'disabled' : ''}>
                 Mover para Equipe
+              </button>
+              <button class="btn-small gold" data-sell-market="${index}">
+                ${createIcon('market', '', 12)}
+                <span>Anunciar no Mercado</span>
               </button>
             ` : ''}
           </div>
@@ -292,7 +335,7 @@ export class TeamModal {
     }
 
     const list = box
-      .map((p, idx) => `${idx + 1}: ${p.displayName} (Nv.${p.level} - HP ${p.currentHp}/${p.maxHp} ${p.currentHp <= 0 ? '💀' : '💚'})`)
+      .map((p, idx) => `${idx + 1}: ${p.displayName} (Nv.${p.level} - HP ${p.currentHp}/${p.maxHp} ${p.currentHp <= 0 ? '[DESMAIADO]' : '[OK]'})`)
       .join('\n');
 
     const choice = prompt(`Selecione um Pokémon da Box para colocar na equipe:\n${list}\n\nDigite o número (1-${box.length}):`);
